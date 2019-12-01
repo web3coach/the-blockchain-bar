@@ -6,9 +6,9 @@ import (
 )
 
 const Major = "0"
-const Minor = "5"
+const Minor = "6"
 const Fix = "0"
-const Verbal = "Flexible DataDir"
+const Verbal = "HTTP API"
 
 var versionCmd = &cobra.Command{
 	Use:   "version",
