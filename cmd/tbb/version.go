@@ -6,9 +6,9 @@ import (
 )
 
 const Major = "0"
-const Minor = "2"
+const Minor = "3"
 const Fix = "0"
-const Verbal = "tbb tx add --data=reward"
+const Verbal = "Immutable Snapshots"
 
 var versionCmd = &cobra.Command{
 	Use:   "version",
