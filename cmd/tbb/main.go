@@ -16,6 +16,7 @@ func main() {
 		},
 	}
 
+	tbbCmd.AddCommand(migrateCmd())
 	tbbCmd.AddCommand(versionCmd)
 	tbbCmd.AddCommand(runCmd())
 
