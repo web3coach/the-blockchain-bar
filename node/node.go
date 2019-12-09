@@ -30,6 +30,11 @@ type TxAddRes struct {
 	Hash     database.Hash `json:"block_hash"`
 }
 
+type StatusRes struct {
+	Hash database.Hash `json:"block_hash"`
+	Number uint64 `json:"block_number"`
+}
+
 func Run(dataDir string) error {
 	fmt.Println(fmt.Sprintf("Listening on HTTP port: %d", httpPort))
 
@@ -45,6 +50,10 @@ func Run(dataDir string) error {
 
 	http.HandleFunc("/tx/add", func(w http.ResponseWriter, r *http.Request) {
 		txAddHandler(w, r, state)
+	})
+
+	http.HandleFunc("/node/status", func(w http.ResponseWriter, r *http.Request) {
+		statusHandler(w, r, state)
 	})
 
 	return http.ListenAndServe(fmt.Sprintf(":%d", httpPort), nil)
@@ -77,6 +86,15 @@ func txAddHandler(w http.ResponseWriter, r *http.Request, state *database.State)
 	}
 
 	writeRes(w, TxAddRes{hash})
+}
+
+func statusHandler(w http.ResponseWriter, r *http.Request, state *database.State) {
+	res := StatusRes{
+		Hash: state.LatestBlockHash(),
+		Number: state.LatestBlock().Header.Number,
+	}
+
+	writeRes(w, res)
 }
 
 func writeErrRes(w http.ResponseWriter, err error) {
