@@ -4,45 +4,48 @@ import (
 	"net/http"
 	"fmt"
 	"github.com/web3coach/the-blockchain-bar/database"
-	"encoding/json"
-	"io/ioutil"
 )
 
-const httpPort = 8080
+const DefaultHTTPort = 8080
 
-type ErrRes struct {
-	Error string `json:"error"`
+type PeerNode struct {
+	IP          string `json:"ip"`
+	Port        uint64 `json:"port"`
+	IsBootstrap bool   `json:"is_bootstrap"`
+	IsActive    bool   `json:"is_active"`
 }
 
-type BalancesRes struct {
-	Hash     database.Hash             `json:"block_hash"`
-	Balances map[database.Account]uint `json:"balances"`
+type Node struct {
+	dataDir string
+	port    uint64
+
+	state *database.State
+
+	knownPeers []PeerNode
 }
 
-type TxAddReq struct {
-	From  string `json:"from"`
-	To    string `json:"to"`
-	Value uint   `json:"value"`
-	Data  string `json:"data"`
+func New(dataDir string, port uint64, bootstrap PeerNode) *Node {
+	return &Node{
+		dataDir: dataDir,
+		port: port,
+		knownPeers: []PeerNode{bootstrap},
+	}
 }
 
-type TxAddRes struct {
-	Hash     database.Hash `json:"block_hash"`
+func NewPeerNode(ip string, port uint64, isBootstrap bool, isActive bool) PeerNode {
+	return PeerNode{ip, port, isBootstrap, isActive}
 }
 
-type StatusRes struct {
-	Hash database.Hash `json:"block_hash"`
-	Number uint64 `json:"block_number"`
-}
+func (n *Node) Run() error {
+	fmt.Println(fmt.Sprintf("Listening on HTTP port: %d", n.port))
 
-func Run(dataDir string) error {
-	fmt.Println(fmt.Sprintf("Listening on HTTP port: %d", httpPort))
-
-	state, err := database.NewStateFromDisk(dataDir)
+	state, err := database.NewStateFromDisk(n.dataDir)
 	if err != nil {
 		return err
 	}
 	defer state.Close()
+
+	n.state = state
 
 	http.HandleFunc("/balances/list", func(w http.ResponseWriter, r *http.Request) {
 		listBalancesHandler(w, r, state)
@@ -53,80 +56,8 @@ func Run(dataDir string) error {
 	})
 
 	http.HandleFunc("/node/status", func(w http.ResponseWriter, r *http.Request) {
-		statusHandler(w, r, state)
+		statusHandler(w, r, n)
 	})
 
-	return http.ListenAndServe(fmt.Sprintf(":%d", httpPort), nil)
-}
-
-func listBalancesHandler(w http.ResponseWriter, r *http.Request, state *database.State) {
-	writeRes(w, BalancesRes{state.LatestBlockHash(), state.Balances})
-}
-
-func txAddHandler(w http.ResponseWriter, r *http.Request, state *database.State) {
-	req := TxAddReq{}
-	err := readReq(r, &req)
-	if err != nil {
-		writeErrRes(w, err)
-		return
-	}
-
-	tx := database.NewTx(database.NewAccount(req.From), database.NewAccount(req.To), req.Value, req.Data)
-
-	err = state.AddTx(tx)
-	if err != nil {
-		writeErrRes(w, err)
-		return
-	}
-
-	hash, err := state.Persist()
-	if err != nil {
-		writeErrRes(w, err)
-		return
-	}
-
-	writeRes(w, TxAddRes{hash})
-}
-
-func statusHandler(w http.ResponseWriter, r *http.Request, state *database.State) {
-	res := StatusRes{
-		Hash: state.LatestBlockHash(),
-		Number: state.LatestBlock().Header.Number,
-	}
-
-	writeRes(w, res)
-}
-
-func writeErrRes(w http.ResponseWriter, err error) {
-	jsonErrRes, _ := json.Marshal(ErrRes{err.Error()})
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusInternalServerError)
-	w.Write(jsonErrRes)
-}
-
-func writeRes(w http.ResponseWriter, content interface{}) {
-	contentJson, err := json.Marshal(content)
-	if err != nil {
-		writeErrRes(w, err)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(contentJson)
-}
-
-func readReq(r *http.Request, reqBody interface{}) error {
-	reqBodyJson, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		return fmt.Errorf("unable to read request body. %s", err.Error())
-	}
-	defer r.Body.Close()
-
-	err = json.Unmarshal(reqBodyJson, reqBody)
-	if err != nil {
-		return fmt.Errorf("unable to unmarshal request body. %s", err.Error())
-	}
-
-	return nil
+	return http.ListenAndServe(fmt.Sprintf(":%d", n.port), nil)
 }

@@ -7,6 +7,7 @@ import (
 )
 
 const flagDataDir = "datadir"
+const flagPort = "port"
 
 func main() {
 	var tbbCmd = &cobra.Command{
