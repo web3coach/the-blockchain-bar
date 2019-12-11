@@ -12,15 +12,13 @@ type State struct {
 	Balances  map[Account]uint
 	txMempool []Tx
 
-	dbFile      *os.File
+	dbFile *os.File
 
 	latestBlock     Block
 	latestBlockHash Hash
 }
 
 func NewStateFromDisk(dataDir string) (*State, error) {
-	dataDir = ExpandPath(dataDir)
-
 	err := initDataDirIfNotExists(dataDir)
 	if err != nil {
 		return nil, err
@@ -108,7 +106,7 @@ func (s *State) Persist() (Hash, error) {
 		return Hash{}, err
 	}
 
-	block := NewBlock(latestBlockHash, s.latestBlock.Header.Number + 1, uint64(time.Now().Unix()), s.txMempool)
+	block := NewBlock(latestBlockHash, s.latestBlock.Header.Number+1, uint64(time.Now().Unix()), s.txMempool)
 	blockHash, err := block.Hash()
 	if err != nil {
 		return Hash{}, err
