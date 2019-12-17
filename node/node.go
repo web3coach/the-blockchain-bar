@@ -1,22 +1,30 @@
 package node
 
 import (
-	"net/http"
+	"context"
 	"fmt"
 	"github.com/web3coach/the-blockchain-bar/database"
-	"context"
+	"net/http"
 )
 
+const DefaultIP = "127.0.0.1"
 const DefaultHTTPort = 8080
 const endpointStatus = "/node/status"
+
 const endpointSync = "/node/sync"
 const endpointSyncQueryKeyFromBlock = "fromBlock"
+
+const endpointAddPeer = "/node/peer"
+const endpointAddPeerQueryKeyIP = "ip"
+const endpointAddPeerQueryKeyPort = "port"
 
 type PeerNode struct {
 	IP          string `json:"ip"`
 	Port        uint64 `json:"port"`
 	IsBootstrap bool   `json:"is_bootstrap"`
-	IsActive    bool   `json:"is_active"`
+
+	// Whenever my node already established connection, sync with this Peer
+	connected bool
 }
 
 func (pn PeerNode) TcpAddress() string {
@@ -25,6 +33,7 @@ func (pn PeerNode) TcpAddress() string {
 
 type Node struct {
 	dataDir string
+	ip      string
 	port    uint64
 
 	state *database.State
@@ -32,24 +41,25 @@ type Node struct {
 	knownPeers map[string]PeerNode
 }
 
-func New(dataDir string, port uint64, bootstrap PeerNode) *Node {
+func New(dataDir string, ip string, port uint64, bootstrap PeerNode) *Node {
 	knownPeers := make(map[string]PeerNode)
 	knownPeers[bootstrap.TcpAddress()] = bootstrap
 
 	return &Node{
-		dataDir: dataDir,
-		port: port,
+		dataDir:    dataDir,
+		ip:         ip,
+		port:       port,
 		knownPeers: knownPeers,
 	}
 }
 
-func NewPeerNode(ip string, port uint64, isBootstrap bool, isActive bool) PeerNode {
-	return PeerNode{ip, port, isBootstrap, isActive}
+func NewPeerNode(ip string, port uint64, isBootstrap bool, connected bool) PeerNode {
+	return PeerNode{ip, port, isBootstrap, connected}
 }
 
 func (n *Node) Run() error {
 	ctx := context.Background()
-	fmt.Println(fmt.Sprintf("Listening on HTTP port: %d", n.port))
+	fmt.Println(fmt.Sprintf("Listening on: %s:%d", n.ip, n.port))
 
 	state, err := database.NewStateFromDisk(n.dataDir)
 	if err != nil {
@@ -74,8 +84,30 @@ func (n *Node) Run() error {
 	})
 
 	http.HandleFunc(endpointSync, func(w http.ResponseWriter, r *http.Request) {
-		syncHandler(w, r, n.dataDir)
+		syncHandler(w, r, n)
 	})
 
-	return http.ListenAndServe(fmt.Sprintf(":%d", n.port), nil)
+	http.HandleFunc(endpointAddPeer, func(w http.ResponseWriter, r *http.Request) {
+		addPeerHandler(w, r, n)
+	})
+
+	return http.ListenAndServe(fmt.Sprintf("%s:%d", n.ip, n.port), nil)
+}
+
+func (n *Node) AddPeer(peer PeerNode) {
+	n.knownPeers[peer.TcpAddress()] = peer
+}
+
+func (n *Node) RemovePeer(peer PeerNode) {
+	delete(n.knownPeers, peer.TcpAddress())
+}
+
+func (n *Node) IsKnownPeer(peer PeerNode) bool {
+	if peer.IP == n.ip && peer.Port == n.port {
+		return true
+	}
+
+	_, isKnownPeer := n.knownPeers[peer.TcpAddress()]
+
+	return isKnownPeer
 }

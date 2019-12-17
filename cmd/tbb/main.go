@@ -3,10 +3,12 @@ package main
 import (
 	"fmt"
 	"github.com/spf13/cobra"
+	"github.com/web3coach/the-blockchain-bar/fs"
 	"os"
 )
 
 const flagDataDir = "datadir"
+const flagIP = "ip"
 const flagPort = "port"
 
 func main() {
@@ -32,6 +34,12 @@ func main() {
 func addDefaultRequiredFlags(cmd *cobra.Command) {
 	cmd.Flags().String(flagDataDir, "", "Absolute path to the node data dir where the DB will/is stored")
 	cmd.MarkFlagRequired(flagDataDir)
+}
+
+func getDataDirFromCmd(cmd *cobra.Command) string {
+	dataDir, _ := cmd.Flags().GetString(flagDataDir)
+
+	return fs.ExpandPath(dataDir)
 }
 
 func incorrectUsageErr() error {
