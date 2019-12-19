@@ -91,7 +91,7 @@ func (n *Node) Run() error {
 		addPeerHandler(w, r, n)
 	})
 
-	return http.ListenAndServe(fmt.Sprintf("%s:%d", n.ip, n.port), nil)
+	return http.ListenAndServe(fmt.Sprintf(":%d", n.port), nil)
 }
 
 func (n *Node) AddPeer(peer PeerNode) {
