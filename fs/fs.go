@@ -1,10 +1,10 @@
 package fs
 
 import (
-	"strings"
-	"path"
 	"os"
 	"os/user"
+	"path"
+	"strings"
 )
 
 // Expands a file path
@@ -25,6 +25,10 @@ func ExpandPath(p string) string {
 		}
 	}
 	return path.Clean(os.ExpandEnv(p))
+}
+
+func RemoveDir(path string) error {
+	return os.RemoveAll(path)
 }
 
 func homeDir() string {

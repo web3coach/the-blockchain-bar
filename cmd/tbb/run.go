@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"github.com/spf13/cobra"
 	"github.com/web3coach/the-blockchain-bar/node"
@@ -18,14 +19,14 @@ func runCmd() *cobra.Command {
 			fmt.Println("Launching TBB node and its HTTP API...")
 
 			bootstrap := node.NewPeerNode(
-				"node.tbb.web3.coach",
+				"127.0.0.1",
 				8080,
 				true,
 				false,
 			)
 
 			n := node.New(getDataDirFromCmd(cmd), ip, port, bootstrap)
-			err := n.Run()
+			err := n.Run(context.Background())
 			if err != nil {
 				fmt.Println(err)
 				os.Exit(1)

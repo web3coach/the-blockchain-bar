@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 )
 
 type Hash [32]byte
@@ -29,6 +30,7 @@ type Block struct {
 type BlockHeader struct {
 	Parent Hash   `json:"parent"`
 	Number uint64 `json:"number"`
+	Nonce  uint32 `json:"nonce"`
 	Time   uint64 `json:"time"`
 }
 
@@ -37,8 +39,8 @@ type BlockFS struct {
 	Value Block `json:"block"`
 }
 
-func NewBlock(parent Hash, number uint64, time uint64, txs []Tx) Block {
-	return Block{BlockHeader{parent, number, time}, txs}
+func NewBlock(parent Hash, number uint64, nonce uint32, time uint64, txs []Tx) Block {
+	return Block{BlockHeader{parent, number, nonce, time}, txs}
 }
 
 func (b Block) Hash() (Hash, error) {
@@ -48,4 +50,11 @@ func (b Block) Hash() (Hash, error) {
 	}
 
 	return sha256.Sum256(blockJson), nil
+}
+
+func IsBlockHashValid(hash Hash) bool {
+	return fmt.Sprintf("%x", hash[0]) == "0" &&
+		fmt.Sprintf("%x", hash[1]) == "0" &&
+		fmt.Sprintf("%x", hash[2]) == "0" &&
+		fmt.Sprintf("%x", hash[3]) != "0"
 }

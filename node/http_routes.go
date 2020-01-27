@@ -5,7 +5,6 @@ import (
 	"github.com/web3coach/the-blockchain-bar/database"
 	"net/http"
 	"strconv"
-	"time"
 )
 
 type ErrRes struct {
@@ -25,13 +24,14 @@ type TxAddReq struct {
 }
 
 type TxAddRes struct {
-	Hash database.Hash `json:"block_hash"`
+	Success bool `json:"success"`
 }
 
 type StatusRes struct {
 	Hash       database.Hash       `json:"block_hash"`
 	Number     uint64              `json:"block_number"`
 	KnownPeers map[string]PeerNode `json:"peers_known"`
+	PendingTXs []database.Tx       `json:"pending_txs"`
 }
 
 type SyncRes struct {
@@ -47,30 +47,22 @@ func listBalancesHandler(w http.ResponseWriter, r *http.Request, state *database
 	writeRes(w, BalancesRes{state.LatestBlockHash(), state.Balances})
 }
 
-func txAddHandler(w http.ResponseWriter, r *http.Request, state *database.State) {
+func txAddHandler(w http.ResponseWriter, r *http.Request, node *Node) {
 	req := TxAddReq{}
 	err := readReq(r, &req)
 	if err != nil {
 		writeErrRes(w, err)
 		return
 	}
-
+	
 	tx := database.NewTx(database.NewAccount(req.From), database.NewAccount(req.To), req.Value, req.Data)
-
-	block := database.NewBlock(
-		state.LatestBlockHash(),
-		state.NextBlockNumber(),
-		uint64(time.Now().Unix()),
-		[]database.Tx{tx},
-	)
-
-	hash, err := state.AddBlock(block)
+	err = node.AddPendingTX(tx, node.info)
 	if err != nil {
 		writeErrRes(w, err)
 		return
 	}
-
-	writeRes(w, TxAddRes{hash})
+	
+	writeRes(w, TxAddRes{Success: true})
 }
 
 func statusHandler(w http.ResponseWriter, r *http.Request, node *Node) {
@@ -78,45 +70,46 @@ func statusHandler(w http.ResponseWriter, r *http.Request, node *Node) {
 		Hash:       node.state.LatestBlockHash(),
 		Number:     node.state.LatestBlock().Header.Number,
 		KnownPeers: node.knownPeers,
+		PendingTXs: node.getPendingTXsAsArray(),
 	}
-
+	
 	writeRes(w, res)
 }
 
 func syncHandler(w http.ResponseWriter, r *http.Request, node *Node) {
 	reqHash := r.URL.Query().Get(endpointSyncQueryKeyFromBlock)
-
+	
 	hash := database.Hash{}
 	err := hash.UnmarshalText([]byte(reqHash))
 	if err != nil {
 		writeErrRes(w, err)
 		return
 	}
-
+	
 	blocks, err := database.GetBlocksAfter(hash, node.dataDir)
 	if err != nil {
 		writeErrRes(w, err)
 		return
 	}
-
+	
 	writeRes(w, SyncRes{Blocks: blocks})
 }
 
 func addPeerHandler(w http.ResponseWriter, r *http.Request, node *Node) {
 	peerIP := r.URL.Query().Get(endpointAddPeerQueryKeyIP)
 	peerPortRaw := r.URL.Query().Get(endpointAddPeerQueryKeyPort)
-
+	
 	peerPort, err := strconv.ParseUint(peerPortRaw, 10, 32)
 	if err != nil {
 		writeRes(w, AddPeerRes{false, err.Error()})
 		return
 	}
-
+	
 	peer := NewPeerNode(peerIP, peerPort, false, true)
-
+	
 	node.AddPeer(peer)
-
+	
 	fmt.Printf("Peer '%s' was added into KnownPeers\n", peer.TcpAddress())
-
+	
 	writeRes(w, AddPeerRes{true, ""})
 }
