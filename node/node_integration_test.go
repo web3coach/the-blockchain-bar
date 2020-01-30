@@ -17,7 +17,7 @@ func TestNode_Run(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	n := New(datadir, "127.0.0.1", 8085, PeerNode{})
+	n := New(datadir, "127.0.0.1", 8085, database.NewAccount("andrej"), PeerNode{})
 
 	ctx, _ := context.WithTimeout(context.Background(), time.Second*5)
 	err = n.Run(ctx)
@@ -33,20 +33,20 @@ func TestNode_Mining(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	n := New(datadir, "127.0.0.1", 8085, PeerNode{})
+	n := New(datadir, "127.0.0.1", 8085, database.NewAccount("andrej"), PeerNode{})
 	ctx, closeNode := context.WithTimeout(context.Background(), time.Minute*15)
 
 	go func() {
 		time.Sleep(time.Second * 1)
 		tx := database.NewTx("andrej", "babayaga", 1, "")
-		myself := NewPeerNode("127.0.0.1", 8085, false, true)
+		myself := NewPeerNode("127.0.0.1", 8085, false, database.NewAccount(""), true)
 		_ = n.AddPendingTX(tx, myself)
 	}()
 
 	go func() {
 		time.Sleep(time.Second * 30)
 		tx := database.NewTx("andrej", "babayaga", 2, "")
-		myself := NewPeerNode("127.0.0.1", 8085, false, true)
+		myself := NewPeerNode("127.0.0.1", 8085, false, database.NewAccount(""), true)
 		_ = n.AddPendingTX(tx, myself)
 	}()
 
@@ -78,19 +78,22 @@ func TestNode_MiningStopsOnNewSyncedBlock(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	n := New(datadir, "127.0.0.1", 8085, PeerNode{})
+	andrejAcc := database.NewAccount("andrej")
+	babayagaAcc := database.NewAccount("babayaga")
+
+	n := New(datadir, "127.0.0.1", 8085, babayagaAcc, PeerNode{})
 	ctx, closeNode := context.WithTimeout(context.Background(), time.Minute*15)
 
 	tx := database.Tx{From: "andrej", To: "babayaga", Value: 1, Time: 1579451695, Data: ""}
 	tx2 := database.NewTx("andrej", "babayaga", 2, "")
 	tx2Hash, _ := tx2.Hash()
 
-	validSyncedBlock := database.NewBlock(database.Hash{}, 1, 1453450257, 1579451704, []database.Tx{tx})
+	validSyncedBlock := database.NewBlock(database.Hash{}, 1, 1275873026, 1580415832, database.NewAccount("andrej"), []database.Tx{tx})
 
 	go func() {
 		time.Sleep(time.Second * (miningIntervalSeconds - 2))
 
-		myself := NewPeerNode("127.0.0.1", 8085, false, true)
+		myself := NewPeerNode("127.0.0.1", 8085, false, database.NewAccount(""), true)
 		err := n.AddPendingTX(tx, myself)
 		if err != nil {
 			t.Fatal(err)
@@ -132,7 +135,7 @@ func TestNode_MiningStopsOnNewSyncedBlock(t *testing.T) {
 	}()
 
 	go func() {
-		ticker := time.NewTicker(10 * time.Second)
+		ticker := time.NewTicker(time.Second * 10)
 
 		for {
 			select {
@@ -143,6 +146,34 @@ func TestNode_MiningStopsOnNewSyncedBlock(t *testing.T) {
 				}
 			}
 		}
+	}()
+
+	go func() {
+		time.Sleep(time.Second * 2)
+
+		startingAndrejBalance := n.state.Balances[andrejAcc]
+		startingBabaYagaBalance := n.state.Balances[babayagaAcc]
+
+		<-ctx.Done()
+
+		endAndrejBalance := n.state.Balances[andrejAcc]
+		endBabaYagaBalance := n.state.Balances[babayagaAcc]
+
+		expectedEndAndrejBalance := startingAndrejBalance - tx.Value - tx2.Value + database.BlockReward
+		expectedEndBabaYagaBalance := startingBabaYagaBalance + tx.Value + tx2.Value + database.BlockReward
+
+		if endAndrejBalance != expectedEndAndrejBalance {
+			t.Fatalf("Andrej expected end balance is %d not %d", expectedEndAndrejBalance, endAndrejBalance)
+		}
+
+		if endBabaYagaBalance != expectedEndBabaYagaBalance {
+			t.Fatalf("BabaYaga expected end balance is %d not %d", expectedEndBabaYagaBalance, endBabaYagaBalance)
+		}
+
+		t.Logf("Starting Andrej balance: %d", startingAndrejBalance)
+		t.Logf("Starting BabaYaga balance: %d", startingBabaYagaBalance)
+		t.Logf("Ending Andrej balance: %d", endAndrejBalance)
+		t.Logf("Ending BabaYaga balance: %d", endBabaYagaBalance)
 	}()
 
 	_ = n.Run(ctx)

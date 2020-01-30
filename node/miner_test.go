@@ -33,7 +33,8 @@ func TestInvalidBlockHash(t *testing.T) {
 }
 
 func TestMine(t *testing.T) {
-	pendingBlock := createRandomPendingBlock()
+	miner := database.NewAccount("andrej")
+	pendingBlock := createRandomPendingBlock(miner)
 
 	ctx := context.Background()
 
@@ -50,10 +51,15 @@ func TestMine(t *testing.T) {
 	if !database.IsBlockHashValid(minedBlockHash) {
 		t.Fatal()
 	}
+
+	if minedBlock.Header.Miner != miner {
+		t.Fatal("mined block miner should equal miner from pending block")
+	}
 }
 
 func TestMineWithTimeout(t *testing.T) {
-	pendingBlock := createRandomPendingBlock()
+	miner := database.NewAccount("andrej")
+	pendingBlock := createRandomPendingBlock(miner)
 
 	ctx, _ := context.WithTimeout(context.Background(), time.Microsecond*100)
 
@@ -63,13 +69,13 @@ func TestMineWithTimeout(t *testing.T) {
 	}
 }
 
-func createRandomPendingBlock() PendingBlock {
+func createRandomPendingBlock(miner database.Account) PendingBlock {
 	return NewPendingBlock(
 		database.Hash{},
-		0,
+		1,
+		miner,
 		[]database.Tx{
-			database.NewTx("andrej", "andrej", 3, ""),
-			database.NewTx("andrej", "andrej", 700, "reward"),
+			database.Tx{From: "andrej", To: "babayaga", Value: 1, Time: 1579451695, Data: ""},
 		},
 	)
 }

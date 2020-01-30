@@ -54,14 +54,14 @@ func txAddHandler(w http.ResponseWriter, r *http.Request, node *Node) {
 		writeErrRes(w, err)
 		return
 	}
-	
+
 	tx := database.NewTx(database.NewAccount(req.From), database.NewAccount(req.To), req.Value, req.Data)
 	err = node.AddPendingTX(tx, node.info)
 	if err != nil {
 		writeErrRes(w, err)
 		return
 	}
-	
+
 	writeRes(w, TxAddRes{Success: true})
 }
 
@@ -72,44 +72,45 @@ func statusHandler(w http.ResponseWriter, r *http.Request, node *Node) {
 		KnownPeers: node.knownPeers,
 		PendingTXs: node.getPendingTXsAsArray(),
 	}
-	
+
 	writeRes(w, res)
 }
 
 func syncHandler(w http.ResponseWriter, r *http.Request, node *Node) {
 	reqHash := r.URL.Query().Get(endpointSyncQueryKeyFromBlock)
-	
+
 	hash := database.Hash{}
 	err := hash.UnmarshalText([]byte(reqHash))
 	if err != nil {
 		writeErrRes(w, err)
 		return
 	}
-	
+
 	blocks, err := database.GetBlocksAfter(hash, node.dataDir)
 	if err != nil {
 		writeErrRes(w, err)
 		return
 	}
-	
+
 	writeRes(w, SyncRes{Blocks: blocks})
 }
 
 func addPeerHandler(w http.ResponseWriter, r *http.Request, node *Node) {
 	peerIP := r.URL.Query().Get(endpointAddPeerQueryKeyIP)
 	peerPortRaw := r.URL.Query().Get(endpointAddPeerQueryKeyPort)
-	
+	minerRaw := r.URL.Query().Get(endpointAddPeerQueryKeyMiner)
+
 	peerPort, err := strconv.ParseUint(peerPortRaw, 10, 32)
 	if err != nil {
 		writeRes(w, AddPeerRes{false, err.Error()})
 		return
 	}
-	
-	peer := NewPeerNode(peerIP, peerPort, false, true)
-	
+
+	peer := NewPeerNode(peerIP, peerPort, false, database.NewAccount(minerRaw), true)
+
 	node.AddPeer(peer)
-	
+
 	fmt.Printf("Peer '%s' was added into KnownPeers\n", peer.TcpAddress())
-	
+
 	writeRes(w, AddPeerRes{true, ""})
 }
