@@ -11,6 +11,9 @@ const flagDataDir = "datadir"
 const flagMiner = "miner"
 const flagIP = "ip"
 const flagPort = "port"
+const flagBootstrapAcc = "bootstrap-account"
+const flagBootstrapIp = "bootstrap-ip"
+const flagBootstrapPort = "bootstrap-port"
 
 func main() {
 	var tbbCmd = &cobra.Command{
@@ -22,6 +25,8 @@ func main() {
 
 	tbbCmd.AddCommand(migrateCmd())
 	tbbCmd.AddCommand(versionCmd)
+	tbbCmd.AddCommand(balancesCmd())
+	tbbCmd.AddCommand(walletCmd())
 	tbbCmd.AddCommand(runCmd())
 	tbbCmd.AddCommand(balancesCmd())
 

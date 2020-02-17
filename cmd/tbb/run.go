@@ -17,14 +17,17 @@ func runCmd() *cobra.Command {
 			miner, _ := cmd.Flags().GetString(flagMiner)
 			ip, _ := cmd.Flags().GetString(flagIP)
 			port, _ := cmd.Flags().GetUint64(flagPort)
+			bootstrapIp, _ := cmd.Flags().GetString(flagBootstrapIp)
+			bootstrapPort, _ := cmd.Flags().GetUint64(flagBootstrapPort)
+			bootstrapAcc, _ := cmd.Flags().GetString(flagBootstrapAcc)
 
 			fmt.Println("Launching TBB node and its HTTP API...")
 
 			bootstrap := node.NewPeerNode(
-				"127.0.0.1",
-				8080,
+				bootstrapIp,
+				bootstrapPort,
 				true,
-				database.NewAccount("andrej"),
+				database.NewAccount(bootstrapAcc),
 				false,
 			)
 
@@ -41,6 +44,9 @@ func runCmd() *cobra.Command {
 	runCmd.Flags().String(flagMiner, node.DefaultMiner, "miner account of this node to receive block rewards")
 	runCmd.Flags().String(flagIP, node.DefaultIP, "exposed IP for communication with peers")
 	runCmd.Flags().Uint64(flagPort, node.DefaultHTTPort, "exposed HTTP port for communication with peers")
+	runCmd.Flags().String(flagBootstrapIp, node.DefaultBootstrapIp, "default bootstrap server to interconnect peers")
+	runCmd.Flags().Uint64(flagBootstrapPort, node.DefaultBootstrapPort, "default bootstrap server port to interconnect peers")
+	runCmd.Flags().String(flagBootstrapAcc, node.DefaultBootstrapAcc, "default bootstrap account to interconnect peers")
 
 	return runCmd
 }

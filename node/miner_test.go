@@ -3,7 +3,9 @@ package node
 import (
 	"context"
 	"encoding/hex"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/web3coach/the-blockchain-bar/database"
+	"github.com/web3coach/the-blockchain-bar/wallet"
 	"testing"
 	"time"
 )
@@ -33,7 +35,7 @@ func TestInvalidBlockHash(t *testing.T) {
 }
 
 func TestMine(t *testing.T) {
-	miner := database.NewAccount("andrej")
+	miner := database.NewAccount(wallet.AndrejAccount)
 	pendingBlock := createRandomPendingBlock(miner)
 
 	ctx := context.Background()
@@ -52,13 +54,13 @@ func TestMine(t *testing.T) {
 		t.Fatal()
 	}
 
-	if minedBlock.Header.Miner != miner {
+	if minedBlock.Header.Miner.String() != miner.String() {
 		t.Fatal("mined block miner should equal miner from pending block")
 	}
 }
 
 func TestMineWithTimeout(t *testing.T) {
-	miner := database.NewAccount("andrej")
+	miner := database.NewAccount(wallet.AndrejAccount)
 	pendingBlock := createRandomPendingBlock(miner)
 
 	ctx, _ := context.WithTimeout(context.Background(), time.Microsecond*100)
@@ -69,13 +71,13 @@ func TestMineWithTimeout(t *testing.T) {
 	}
 }
 
-func createRandomPendingBlock(miner database.Account) PendingBlock {
+func createRandomPendingBlock(miner common.Address) PendingBlock {
 	return NewPendingBlock(
 		database.Hash{},
 		0,
 		miner,
 		[]database.Tx{
-			database.Tx{From: "andrej", To: "babayaga", Value: 1, Time: 1579451695, Data: ""},
+			database.Tx{From: database.NewAccount(wallet.AndrejAccount), To: database.NewAccount(wallet.BabaYagaAccount), Value: 1, Time: 1579451695, Data: ""},
 		},
 	)
 }
