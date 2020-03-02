@@ -21,7 +21,7 @@ type State struct {
 }
 
 func NewStateFromDisk(dataDir string) (*State, error) {
-	err := initDataDirIfNotExists(dataDir)
+	err := InitDataDirIfNotExists(dataDir, []byte(genesisJson))
 	if err != nil {
 		return nil, err
 	}
@@ -190,24 +190,33 @@ func applyBlock(b Block, s *State) error {
 	return nil
 }
 
-func applyTXs(txs []Tx, s *State) error {
+func applyTXs(txs []SignedTx, s *State) error {
 	sort.Slice(txs, func(i, j int) bool {
 		return txs[i].Time < txs[j].Time
 	})
-
+	
 	for _, tx := range txs {
 		err := applyTx(tx, s)
 		if err != nil {
 			return err
 		}
 	}
-
+	
 	return nil
 }
 
-func applyTx(tx Tx, s *State) error {
+func applyTx(tx SignedTx, s *State) error {
+	ok, err := tx.IsAuthentic()
+	if err != nil {
+		return err
+	}
+
+	if !ok {
+		return fmt.Errorf("wrong TX. Sender '%s' is forged", tx.From.String())
+	}
+
 	if tx.Value > s.Balances[tx.From] {
-		return fmt.Errorf("wrong TX. Sender '%s' balance is %d TBB. Tx cost is %d TBB", tx.From, s.Balances[tx.From], tx.Value)
+		return fmt.Errorf("wrong TX. Sender '%s' balance is %d TBB. Tx cost is %d TBB", tx.From.String(), s.Balances[tx.From], tx.Value)
 	}
 
 	s.Balances[tx.From] -= tx.Value

@@ -28,6 +28,10 @@ func (n *Node) doSync() {
 			continue
 		}
 
+		if peer.IP == "" {
+			continue
+		}
+
 		fmt.Printf("Searching for new Peers and their Blocks and Peers: '%s'\n", peer.TcpAddress())
 
 		status, err := queryPeerStatus(peer)
@@ -120,7 +124,7 @@ func (n *Node) syncKnownPeers(status StatusRes) error {
 	return nil
 }
 
-func (n *Node) syncPendingTXs(peer PeerNode, txs []database.Tx) error {
+func (n *Node) syncPendingTXs(peer PeerNode, txs []database.SignedTx) error {
 	for _, tx := range txs {
 		err := n.AddPendingTX(tx, peer)
 		if err != nil {

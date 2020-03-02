@@ -1,12 +1,12 @@
 package database
 
 import (
-	"path/filepath"
-	"os"
 	"io/ioutil"
+	"os"
+	"path/filepath"
 )
 
-func initDataDirIfNotExists(dataDir string) error {
+func InitDataDirIfNotExists(dataDir string, genesis []byte) error {
 	if fileExist(getGenesisJsonFilePath(dataDir)) {
 		return nil
 	}
@@ -15,7 +15,7 @@ func initDataDirIfNotExists(dataDir string) error {
 		return err
 	}
 
-	if err := writeGenesisToDisk(getGenesisJsonFilePath(dataDir)); err != nil {
+	if err := writeGenesisToDisk(getGenesisJsonFilePath(dataDir), genesis); err != nil {
 		return err
 	}
 
