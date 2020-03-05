@@ -70,7 +70,8 @@ func txAddHandler(w http.ResponseWriter, r *http.Request, node *Node) {
 		return
 	}
 
-	tx := database.NewTx(from, database.NewAccount(req.To), req.Value, req.Data)
+	nonce := node.state.GetNextAccountNonce(from)
+	tx := database.NewTx(from, database.NewAccount(req.To), req.Value, nonce, req.Data)
 
 	signedTx, err := wallet.SignTxWithKeystoreAccount(tx, from, req.FromPwd, wallet.GetKeystoreDirPath(node.dataDir))
 	if err != nil {

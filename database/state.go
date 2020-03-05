@@ -11,7 +11,8 @@ import (
 )
 
 type State struct {
-	Balances map[common.Address]uint
+	Balances      map[common.Address]uint
+	Account2Nonce map[common.Address]uint
 
 	dbFile *os.File
 
@@ -36,6 +37,8 @@ func NewStateFromDisk(dataDir string) (*State, error) {
 		balances[account] = balance
 	}
 
+	account2nonce := make(map[common.Address]uint)
+
 	dbFilepath := getBlocksDbFilePath(dataDir)
 	f, err := os.OpenFile(dbFilepath, os.O_APPEND|os.O_RDWR, 0600)
 	if err != nil {
@@ -44,7 +47,7 @@ func NewStateFromDisk(dataDir string) (*State, error) {
 
 	scanner := bufio.NewScanner(f)
 
-	state := &State{balances, f, Block{}, Hash{}, false}
+	state := &State{balances, account2nonce, f, Block{}, Hash{}, false}
 
 	for scanner.Scan() {
 		if err := scanner.Err(); err != nil {
@@ -116,6 +119,7 @@ func (s *State) AddBlock(b Block) (Hash, error) {
 	}
 
 	s.Balances = pendingState.Balances
+	s.Account2Nonce = pendingState.Account2Nonce
 	s.latestBlockHash = blockHash
 	s.latestBlock = b
 	s.hasGenesisBlock = true
@@ -139,6 +143,10 @@ func (s *State) LatestBlockHash() Hash {
 	return s.latestBlockHash
 }
 
+func (s *State) GetNextAccountNonce(account common.Address) uint {
+	return s.Account2Nonce[account] + 1
+}
+
 func (s *State) Close() error {
 	return s.dbFile.Close()
 }
@@ -149,9 +157,14 @@ func (s *State) copy() State {
 	c.latestBlock = s.latestBlock
 	c.latestBlockHash = s.latestBlockHash
 	c.Balances = make(map[common.Address]uint)
+	c.Account2Nonce = make(map[common.Address]uint)
 
 	for acc, balance := range s.Balances {
 		c.Balances[acc] = balance
+	}
+
+	for acc, nonce := range s.Account2Nonce {
+		c.Account2Nonce[acc] = nonce
 	}
 
 	return c
@@ -215,12 +228,19 @@ func applyTx(tx SignedTx, s *State) error {
 		return fmt.Errorf("wrong TX. Sender '%s' is forged", tx.From.String())
 	}
 
+	expectedNonce := s.GetNextAccountNonce(tx.From)
+	if tx.Nonce != expectedNonce {
+		return fmt.Errorf("wrong TX. Sender '%s' next nonce must be '%d', not '%d'", tx.From.String(), expectedNonce, tx.Nonce)
+	}
+
 	if tx.Value > s.Balances[tx.From] {
 		return fmt.Errorf("wrong TX. Sender '%s' balance is %d TBB. Tx cost is %d TBB", tx.From.String(), s.Balances[tx.From], tx.Value)
 	}
 
 	s.Balances[tx.From] -= tx.Value
 	s.Balances[tx.To] += tx.Value
+
+	s.Account2Nonce[tx.From] = tx.Nonce
 
 	return nil
 }

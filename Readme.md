@@ -7,14 +7,19 @@ go install ./cmd/...
 ```
 
 ## Usage
-### List all possible commands
+### List all possible commands, arguments and configurations
 ```
 tbb help
 ```
 
-### Run TBB blockchain
+### Run TBB blockchain connected to the official book's test network
 ```
 tbb run --datadir=~/.tbb
+```
+
+### Run TBB blockchain in isolation, on your localhost only
+```
+tbb run --datadir=~/.tbb --bootstrap=""
 ```
 
 ### Create a new account

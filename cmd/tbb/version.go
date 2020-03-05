@@ -5,10 +5,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const Major = "0"
-const Minor = "12"
+const Major = "1"
+const Minor = "0"
 const Fix = "0"
-const Verbal = "Signed TX"
+const Verbal = "Decentralized Auth"
 
 var versionCmd = &cobra.Command{
 	Use:   "version",
