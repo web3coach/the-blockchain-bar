@@ -35,6 +35,24 @@ git checkout c1_genesis_json
 
 Read, experiment with the code and, most importantly, have fun!
 
+## CLI
+Interacting with blockchain using CLI.
+
+### Show current program's version
+```bash
+tbb help
+```
+
+### Show blockchain balances of all bar's customers
+```bash
+tbb balances
+```
+
+### Store a new TX in the DB
+```bash
+tbb tx add --from=andrej --to=babayaga --value=1000
+```
+
 ## Getting Unstuck
 Can't understand why is something done in a particular way or crack your way around a specific chapter's topic?
    
