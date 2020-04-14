@@ -53,6 +53,11 @@ tbb balances
 tbb tx add --from=andrej --to=babayaga --value=1000
 ```
 
+### Store a new Reward TX in the DB
+```bash
+tbb tx add --from=andrej --to=andrej --value=100 --data=reward
+```
+
 ## Getting Unstuck
 Can't understand why is something done in a particular way or crack your way around a specific chapter's topic?
    
