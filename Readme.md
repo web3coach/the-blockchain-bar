@@ -1,5 +1,5 @@
 # The Blockchain Bar
-> A custom build blockchain in Go.
+> Build a custom blockchain in Go from scratch.
 
 The full source-code for book: "The Blockchain Way of Programming".
 
