@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/spf13/cobra"
-	"github.com/web3coach/the-blockchain-bar/database"
 	"fmt"
+	"github.com/spf13/cobra"
+	"github.com/web3coach/the-blockchain-way-of-programming-newsletter-edition/database"
 	"os"
 )
 
