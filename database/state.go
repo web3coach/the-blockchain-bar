@@ -26,7 +26,7 @@ func NewStateFromDisk() (*State, error) {
 		return nil, err
 	}
 
-	balances := make(map[Account]uint)
+	balances := make(map[Account]uint, len(gen.Balances))
 	for account, balance := range gen.Balances {
 		balances[account] = balance
 	}
