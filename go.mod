@@ -1,4 +1,4 @@
-module github.com/web3coach/the-blockchain-bar
+module github.com/web3coach/the-blockchain-way-of-programming-newsletter-edition
 
 go 1.13
 
