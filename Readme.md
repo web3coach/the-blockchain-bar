@@ -25,8 +25,9 @@ git branch
 > c1_genesis_json
 > c2_db_changes_txt
 > c3_state_blockchain_component
-> c4...
-> c5...
+> c4_caesar_transfer
+> c5_broken_trust
+> c6_immutable_hash
 ```
 
 ## Installation
@@ -67,6 +68,8 @@ go get -u github.com/web3coach/the-blockchain-way-of-programming-newsletter-edit
 1. Checkout the first chapter's branch
 
 ```git
+git pull --all
+
 git checkout c1_genesis_json
 ```
 
