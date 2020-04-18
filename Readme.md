@@ -5,6 +5,8 @@ The source-code for the first 6 chapters of: "The Blockchain Way of Programming"
 
 Download the eBook from: https://web3.coach
 
+![book cover](./book_cover.png)
+
 ## Foreword
 Welcome to the blockchain world!
 
@@ -35,7 +37,7 @@ to install Go: [https://golang.org/doc/install](https://golang.org/doc/install)
 
 Verify your `$GOPATH` is correctly set before continuing.
 
-### Setup this Repository
+### Setup this repository
 
 Go is bit picky about where you store your repositories.
 
@@ -55,12 +57,12 @@ git clone git@github.com:web3coach/the-blockchain-way-of-programming-newsletter-
 
 PS: Make sure you actually clone it inside the `src/github.com/web3coach` directory, not your own, otherwise it won't compile. Go rules.
 
-#### Using Go Get
+#### Using Go get
 ```bash
 go get -u github.com/web3coach/the-blockchain-way-of-programming-newsletter-edition
 ```
 
-## Getting Started
+## Getting started
 1. Open the eBook at Chapter 1
 1. Checkout the first chapter's branch
 
@@ -70,7 +72,7 @@ git checkout c1_genesis_json
 
 Read, experiment with the code and, most importantly, have fun!
 
-## Getting Unstuck
+## Getting unstuck
 Can't understand why is something done in a particular way or crack your way around a specific chapter's topic?
 
 Blockchain is a challenging technology.
