@@ -1,5 +1,5 @@
 # The Blockchain Bar
-> A custom build blockchain in Go.
+> Build a custom blockchain in Go.
 
 The full source-code for book: "The Blockchain Way of Programming".
 
@@ -35,27 +35,38 @@ git checkout c1_genesis_json
 
 Read, experiment with the code and, most importantly, have fun!
 
-## CLI
-Interacting with blockchain using CLI.
+## Blockchain Usage
 
 ### Show current program's version
 ```bash
 tbb help
 ```
 
-### Show blockchain balances of all bar's customers
-```bash
-tbb balances
+### Launch the blockchain and its HTTP API
+```
+tbb run --datadir=/home/web3coach/.tbb
 ```
 
-### Store a new TX in the DB
-```bash
-tbb tx add --from=andrej --to=babayaga --value=1000
+### List all balances
+```
+curl -X GET http://localhost:8080/balances/list -H 'Content-Type: application/json'
 ```
 
-### Store a new Reward TX in the DB
-```bash
-tbb tx add --from=andrej --to=andrej --value=100 --data=reward
+### Add a new TX
+```
+curl -X POST http://localhost:8080/tx/add -H 'Content-Type: application/json' -d '{"from": "andrej","to": "andrej","value": 100,"data": "reward"}'
+```
+
+## Compile
+
+To local OS:
+```
+go install ./cmd/...
+```
+
+Cross-compile to Linux:
+```
+xgo --targets=linux/amd64 ./cmd/tbb
 ```
 
 ## Getting Unstuck
