@@ -1,9 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"github.com/spf13/cobra"
 	"os"
-	"fmt"
 )
 
 const flagDataDir = "datadir"
@@ -17,8 +17,6 @@ func main() {
 	}
 
 	tbbCmd.AddCommand(versionCmd)
-	tbbCmd.AddCommand(balancesCmd())
-	tbbCmd.AddCommand(txCmd())
 	tbbCmd.AddCommand(runCmd())
 
 	err := tbbCmd.Execute()
