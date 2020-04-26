@@ -36,21 +36,29 @@ func txAddCmd() *cobra.Command {
 			to, _ := cmd.Flags().GetString(flagTo)
 			value, _ := cmd.Flags().GetUint(flagValue)
 
-			tx := database.NewTx(database.NewAccount(from), database.NewAccount(to), value, "")
+			fromAcc := database.NewAccount(from)
+			toAcc := database.NewAccount(to)
+
+			tx := database.NewTx(fromAcc, toAcc, value, "")
 
 			state, err := database.NewStateFromDisk()
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
 				os.Exit(1)
 			}
+
+			// defer means, at the end of this function execution,
+			// execute the following statement (close DB file with all TXs)
 			defer state.Close()
 
+			// Add the TX to an in-memory array (pool)
 			err = state.Add(tx)
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
 				os.Exit(1)
 			}
 
+			// Flush the mempool TXs to disk
 			err = state.Persist()
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
