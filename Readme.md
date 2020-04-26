@@ -7,15 +7,6 @@ Download the eBook from: https://web3.coach
 
 ![book cover](./book_cover.png)
 
-## Foreword
-Welcome to the blockchain world!
-
-You made the right choice of learning blockchain development and expanding your programming career.
-
-**This repository is just an extract from the private Github repository and it contains roughly 5-10% of the overall full source code that you will get access to after purchasing the complete eBook once it's ready in a few weeks time.**
-
-Enjoy your blockchain programming journey! 
-
 ## How to use this repository
 Every eBook chapter has a dedicated branch where you can experiment with the code first-hand.
 
