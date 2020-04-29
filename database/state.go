@@ -135,7 +135,7 @@ func (s *State) apply(tx Tx) error {
 		return nil
 	}
 
-	if s.Balances[tx.From]-tx.Value < 0 {
+	if s.Balances[tx.From] < tx.Value {
 		return fmt.Errorf("insufficient balance")
 	}
 
