@@ -1,15 +1,15 @@
 package database
 
 import (
+	"bufio"
+	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
-	"encoding/json"
-	"bufio"
-	"fmt"
 )
 
 type State struct {
-	Balances   map[Account]uint
+	Balances  map[Account]uint
 	txMempool []Tx
 
 	dbFile *os.File
@@ -96,7 +96,7 @@ func (s *State) apply(tx Tx) error {
 		return nil
 	}
 
-	if s.Balances[tx.From] - tx.Value < 0 {
+	if s.Balances[tx.From] < tx.Value {
 		return fmt.Errorf("insufficient balance")
 	}
 
