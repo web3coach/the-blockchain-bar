@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/spf13/cobra"
 	"fmt"
+	"github.com/spf13/cobra"
 	"github.com/web3coach/the-blockchain-bar/node"
 	"os"
 )
@@ -18,7 +18,7 @@ func runCmd() *cobra.Command {
 			fmt.Println("Launching TBB node and its HTTP API...")
 
 			bootstrap := node.NewPeerNode(
-				"18.184.213.146",
+				"3.127.248.10",
 				8080,
 				true,
 				true,
