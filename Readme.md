@@ -1,18 +1,42 @@
 # The Blockchain Bar
-> A custom build blockchain in Go.
+> Build a custom blockchain in Go from scratch.
 
 The source-code for the first 6 chapters of: "The Blockchain Way of Programming".
 
 Download the eBook from: https://web3.coach
 
-## Foreword
-Welcome to the blockchain world!
+![book cover](./book_cover.png)
 
-You made the right choice of learning blockchain development and expanding your programming career.
+## What will you build?
+I can't promise the blockchain way of programming will be easy, but this eBook will turn you into a blockchain developer, expand your career prospects, and open you up to a whole new community of amazing forward thinkers.
 
-**This repository is just an extract from the private Github repository and it contains roughly 5-10% of the overall full source code that you will get access to after purchasing the complete eBook once it's ready in a few weeks time.**
+Chapter by chapter, you will build a full peer-to-peer, autonomous blockchain system in Go and learn all standard blockchain components!
 
-Enjoy your blockchain programming journey! 
+### 1) You will build a peer-to-peer system from scratch
+
+You will get access to a private Github repository where you will start with 0 lines of code and end-up with 13+ branches with complete executable source-code.
+
+PS: Don't worry if anything on the screen makes sense yet, it will once you go chapter by chapter; release by release.
+
+![peer-to-peer blockchain system in action](./andrej_babayaga_caesar_sync_p2p.png)
+
+### 2) You will secure the system with a day-to-day practical cryptography
+
+No boring theory. Only modern practices.
+
+![elliptic curve cryptography](./andrej_babayaga_crypto_sign_summary.png)
+
+### 3) You will implement Bitcoin, Ethereum and XRP backend components 
+
+From diagrams of mining algorithms to actual, implemented and working crypto wallets for storing the mined tokens and all other fundamental components that make blockchain special.
+
+![decentralized consensus](./mining_p2p.png)
+
+### 4) You will write unit tests and integration tests for all core components
+
+You will test your cryptographic functions, a Bitcoin's like Proof of Work mining algorithm and other key components.
+
+![ethereum signature](./test_ethereum_signature.png)
 
 ## How to use this repository
 Every eBook chapter has a dedicated branch where you can experiment with the code first-hand.
@@ -23,55 +47,28 @@ git branch
 > c1_genesis_json
 > c2_db_changes_txt
 > c3_state_blockchain_component
-> c4...
-> c5...
+> c4_caesar_transfer
+> c5_broken_trust
+> c6_immutable_hash
 ```
 
 ## Installation
 
-### Install Go
-Follow the official docs or use your favorite dependency manager
-to install Go: [https://golang.org/doc/install](https://golang.org/doc/install)
+[Open instructions.](./Installation.md)
 
-Verify your `$GOPATH` is correctly set before continuing.
-
-### Setup this Repository
-
-Go is bit picky about where you store your repositories.
-
-The convention is to store:
-- the source code inside the `$GOPATH/src`
-- the compiled program binaries inside the `$GOPATH/bin`
-
-You can `clone` the repository or use `go get` to install it.
-
-#### Using Git
-```bash
-mkdir -p $GOPATH/src/github.com/web3coach
-cd $GOPATH/src/github.com/web3coach
-
-git clone git@github.com:web3coach/the-blockchain-way-of-programming-newsletter-edition.git
-```
-
-PS: Make sure you actually clone it inside the `src/github.com/web3coach` directory, not your own, otherwise it won't compile. Go rules.
-
-#### Using Go Get
-```bash
-go get -u github.com/web3coach/the-blockchain-way-of-programming-newsletter-edition
-```
-
-## Getting Started
+## Getting started
 1. Open the eBook at Chapter 1
 1. Checkout the first chapter's branch
 
 ```git
+git pull --all
+
 git checkout c1_genesis_json
 ```
 
-Read, experiment with the code and, most importantly, have fun!
-
-## CLI
-Interacting with blockchain using CLI.
+## TBB program usage
+### CLI
+Interacting with TBB blockchain using CLI.
 
 ### Show current program's version
 ```bash
@@ -93,11 +90,11 @@ tbb tx add --from=andrej --to=babayaga --value=1000
 tbb tx add --from=andrej --to=andrej --value=100 --data=reward
 ```
 
-## Getting Unstuck
+## Getting unstuck
 Can't understand why is something done in a particular way or crack your way around a specific chapter's topic?
 
 Blockchain is a challenging technology.
    
-As I promised, you have my full support. You are not alone in this. Write me a DM on LinkedIn, and I will help you figure it out and move forward on your new journey :)
+Write me a DM on LinkedIn or create a Github Issue, and I will help you move forward on your new blockchain journey!
    
 [https://www.linkedin.com/in/llukac](https://www.linkedin.com/in/llukac)
