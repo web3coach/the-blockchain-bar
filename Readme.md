@@ -1,20 +1,23 @@
 # The Blockchain Bar
 > Build a custom blockchain in Go from scratch.
 
-The source-code for the first 6 chapters of: "The Blockchain Way of Programming".
+The source-code for the first 7 chapters of: "The Blockchain Way of Programming".
 
 Download the eBook from: https://web3.coach
 
 ![book cover](./book_cover.png)
 
-## What will you build?
+## Foreword
+
 I can't promise the blockchain way of programming will be easy, but this eBook will turn you into a blockchain developer, expand your career prospects, and open you up to a whole new community of amazing forward thinkers.
 
-Chapter by chapter, you will build a full peer-to-peer, autonomous blockchain system in Go and learn all standard blockchain components!
+## What will you build?
+
+Chapter by chapter, you will build a full peer-to-peer, autonomous blockchain system in Go and **learn all standard blockchain components!**
 
 ### 1) You will build a peer-to-peer system from scratch
 
-You will get access to a private Github repository where you will start with 0 lines of code and end-up with 13+ branches with complete executable source-code.
+You start with 0 lines of code and end-up with 13+ branches with complete executable source-code.
 
 PS: Don't worry if anything on the screen makes sense yet, it will once you go chapter by chapter; release by release.
 
@@ -77,7 +80,7 @@ tbb help
 
 ### Show blockchain balances of all bar's customers
 ```bash
-tbb balances
+tbb balances list
 ```
 
 ### Store a new TX in the DB
