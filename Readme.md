@@ -5,7 +5,7 @@ The source-code for the first 7 chapters of: "The Blockchain Way of Programming"
 
 Download the eBook from: https://web3.coach
 
-![book cover](./book_cover.png)
+![book cover](public/img/book_cover.png)
 
 ## Foreword
 
@@ -21,25 +21,25 @@ You start with 0 lines of code and end-up with 13+ branches with complete execut
 
 PS: Don't worry if anything on the screen makes sense yet, it will once you go chapter by chapter; release by release.
 
-![peer-to-peer blockchain system in action](./andrej_babayaga_caesar_sync_p2p.png)
+![peer-to-peer blockchain system in action](public/img/andrej_babayaga_caesar_sync_p2p.png)
 
 ### 2) You will secure the system with a day-to-day practical cryptography
 
 No boring theory. Only modern practices.
 
-![elliptic curve cryptography](./andrej_babayaga_crypto_sign_summary.png)
+![elliptic curve cryptography](public/img/andrej_babayaga_crypto_sign_summary.png)
 
 ### 3) You will implement Bitcoin, Ethereum and XRP backend components 
 
 From diagrams of mining algorithms to actual, implemented and working crypto wallets for storing the mined tokens and all other fundamental components that make blockchain special.
 
-![decentralized consensus](./mining_p2p.png)
+![decentralized consensus](public/img/mining_p2p.png)
 
 ### 4) You will write unit tests and integration tests for all core components
 
 You will test your cryptographic functions, a Bitcoin's like Proof of Work mining algorithm and other key components.
 
-![ethereum signature](./test_ethereum_signature.png)
+![ethereum signature](public/img/test_ethereum_signature.png)
 
 ## How to use this repository
 Every eBook chapter has a dedicated branch where you can experiment with the code first-hand.
