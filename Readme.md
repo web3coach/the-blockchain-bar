@@ -3,7 +3,7 @@
 
 The source-code for the first 7 chapters of: "The Blockchain Way of Programming".
 
-Download the eBook from: https://web3.coach
+Download the eBook from: [https://web3.coach#book](https://web3.coach#book)
 
 ![book cover](public/img/book_cover.png)
 
