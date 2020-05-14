@@ -98,6 +98,6 @@ Can't understand why is something done in a particular way or crack your way aro
 
 Blockchain is a challenging technology.
    
-Write me a DM on LinkedIn or create a Github Issue, and I will help you move forward on your new blockchain journey!
+Write me a DM on Twitter or create a Github Issue, and I will help you move forward on your new blockchain journey!
    
-[https://www.linkedin.com/in/llukac](https://www.linkedin.com/in/llukac)
+[https://twitter.com/Web3Coach](https://twitter.com/Web3Coach)
