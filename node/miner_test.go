@@ -72,7 +72,7 @@ func TestMineWithTimeout(t *testing.T) {
 func createRandomPendingBlock(miner database.Account) PendingBlock {
 	return NewPendingBlock(
 		database.Hash{},
-		1,
+		0,
 		miner,
 		[]database.Tx{
 			database.Tx{From: "andrej", To: "babayaga", Value: 1, Time: 1579451695, Data: ""},
