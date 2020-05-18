@@ -18,7 +18,7 @@ func runCmd() *cobra.Command {
 			fmt.Println("Launching TBB node and its HTTP API...")
 
 			bootstrap := node.NewPeerNode(
-				"node.tbb.web3.coach",
+				"127.0.0.1",
 				8080,
 				true,
 				false,
