@@ -70,8 +70,9 @@ func (s *State) Persist() error {
 	mempool := make([]Tx, len(s.txMempool))
 	copy(mempool, s.txMempool)
 
+	var initTX []Tx
 	for i := 0; i < len(mempool); i++ {
-		txJson, err := json.Marshal(s.txMempool[i])
+		txJson, err := json.Marshal(mempool[i])
 		if err != nil {
 			return err
 		}
@@ -80,7 +81,7 @@ func (s *State) Persist() error {
 			return err
 		}
 
-		s.txMempool = append(s.txMempool[:i], s.txMempool[i+1:]...)
+		s.txMempool = append(initTX, s.txMempool[1:]...)
 	}
 
 	return nil
