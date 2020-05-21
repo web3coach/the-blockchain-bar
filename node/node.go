@@ -116,7 +116,17 @@ func (n *Node) Run(ctx context.Context) error {
 		_ = server.Close()
 	}()
 
-	return server.ListenAndServe()
+	err = server.ListenAndServe()
+	// This shouldn't be an error!
+	if err != http.ErrServerClosed {
+		return err
+	}
+
+	return nil
+}
+
+func (n *Node) LatestBlockHash() database.Hash {
+	return n.state.LatestBlockHash()
 }
 
 func (n *Node) mine(ctx context.Context) error {
@@ -239,9 +249,12 @@ func (n *Node) AddPendingTX(tx database.Tx, fromPeer PeerNode) error {
 }
 
 func (n *Node) getPendingTXsAsArray() []database.Tx {
-	txs := make([]database.Tx, 0)
+	txs := make([]database.Tx, len(n.pendingTXs))
+
+	i := 0
 	for _, tx := range n.pendingTXs {
-		txs = append(txs, tx)
+		txs[i] = tx
+		i++
 	}
 
 	return txs

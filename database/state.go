@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"sort"
 )
 
 type State struct {
@@ -43,7 +44,7 @@ func NewStateFromDisk(dataDir string) (*State, error) {
 	scanner := bufio.NewScanner(f)
 
 	state := &State{balances, f, Block{}, Hash{}, false}
-	
+
 	for scanner.Scan() {
 		if err := scanner.Err(); err != nil {
 			return nil, err
@@ -160,7 +161,7 @@ func (s *State) copy() State {
 // Block metadata are verified as well as transactions within (sufficient balances, etc).
 func applyBlock(b Block, s *State) error {
 	nextExpectedBlockNumber := s.latestBlock.Header.Number + 1
-	
+
 	if s.hasGenesisBlock && b.Header.Number != nextExpectedBlockNumber {
 		return fmt.Errorf("next expected block must be '%d' not '%d'", nextExpectedBlockNumber, b.Header.Number)
 	}
@@ -168,12 +169,12 @@ func applyBlock(b Block, s *State) error {
 	if s.hasGenesisBlock && s.latestBlock.Header.Number > 0 && !reflect.DeepEqual(b.Header.Parent, s.latestBlockHash) {
 		return fmt.Errorf("next block parent hash must be '%x' not '%x'", s.latestBlockHash, b.Header.Parent)
 	}
-	
+
 	hash, err := b.Hash()
 	if err != nil {
 		return err
 	}
-	
+
 	if !IsBlockHashValid(hash) {
 		return fmt.Errorf("invalid block hash %x", hash)
 	}
@@ -182,13 +183,17 @@ func applyBlock(b Block, s *State) error {
 	if err != nil {
 		return err
 	}
-	
+
 	s.Balances[b.Header.Miner] += BlockReward
-	
+
 	return nil
 }
 
 func applyTXs(txs []Tx, s *State) error {
+	sort.Slice(txs, func(i, j int) bool {
+		return txs[i].Time < txs[j].Time
+	})
+
 	for _, tx := range txs {
 		err := applyTx(tx, s)
 		if err != nil {
