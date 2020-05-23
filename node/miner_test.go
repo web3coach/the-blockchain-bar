@@ -105,7 +105,7 @@ func generateKey() (*ecdsa.PrivateKey, ecdsa.PublicKey, common.Address, error) {
 }
 
 func createRandomPendingBlock(privKey *ecdsa.PrivateKey, acc common.Address) (PendingBlock, error) {
-	tx := database.NewTx(acc, database.NewAccount(testKsBabaYagaAccount), 1, "")
+	tx := database.NewTx(acc, database.NewAccount(testKsBabaYagaAccount), 1, 1, "")
 	signedTx, err := wallet.SignTx(tx, privKey)
 	if err != nil {
 		return PendingBlock{}, err

@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/web3coach/the-blockchain-bar/database"
-	"github.com/web3coach/the-blockchain-bar/wallet"
 	"github.com/web3coach/the-blockchain-bar/fs"
+	"github.com/web3coach/the-blockchain-bar/wallet"
 	"io"
 	"io/ioutil"
 	"os"
@@ -47,8 +47,8 @@ func TestNode_Run(t *testing.T) {
 
 	ctx, _ := context.WithTimeout(context.Background(), time.Second*5)
 	err = n.Run(ctx)
-	if err.Error() != "http: Server closed" {
-		t.Fatal("node server was suppose to close after 5s")
+	if err != nil {
+		t.Fatal(err)
 	}
 }
 
@@ -58,7 +58,7 @@ func TestNode_Mining(t *testing.T) {
 		t.Error(err)
 	}
 	defer fs.RemoveDir(dataDir)
-	
+
 	// Required for AddPendingTX() to describe
 	// from what node the TX came from (local node in this case)
 	nInfo := NewPeerNode(
@@ -72,18 +72,18 @@ func TestNode_Mining(t *testing.T) {
 	// Construct a new Node instance and configure
 	// Andrej as a miner
 	n := New(dataDir, nInfo.IP, nInfo.Port, andrej, nInfo)
-	
+
 	// Allow the mining to run for 30 mins, in the worst case
 	ctx, closeNode := context.WithTimeout(
 		context.Background(),
-		time.Minute * 30,
+		time.Minute*30,
 	)
 
 	// Schedule a new TX in 3 seconds from now, in a separate thread
 	// because the n.Run() few lines below is a blocking call
 	go func() {
 		time.Sleep(time.Second * miningIntervalSeconds / 3)
-		
+
 		tx := database.NewTx(andrej, babaYaga, 1, 1, "")
 		signedTx, err := wallet.SignTxWithKeystoreAccount(tx, andrej, testKsAccountsPwd, wallet.GetKeystoreDirPath(dataDir))
 		if err != nil {
@@ -97,7 +97,7 @@ func TestNode_Mining(t *testing.T) {
 	// Schedule a new TX in 12 seconds from now simulating
 	// that it came in - while the first TX is being mined
 	go func() {
-		time.Sleep(time.Second * miningIntervalSeconds + 2)
+		time.Sleep(time.Second*miningIntervalSeconds + 2)
 
 		tx := database.NewTx(andrej, babaYaga, 2, 2, "")
 		signedTx, err := wallet.SignTxWithKeystoreAccount(tx, andrej, testKsAccountsPwd, wallet.GetKeystoreDirPath(dataDir))
@@ -132,6 +132,11 @@ func TestNode_Mining(t *testing.T) {
 	}
 }
 
+// Expect:
+//     ERROR: wrong TX. Sender '0x3EB9....' is forged
+//
+// TODO: Improve this with TX Receipt concept in next chapters.
+// TODO: Improve this with a 100% clear error check.
 func TestNode_ForgedTx(t *testing.T) {
 	dataDir, andrej, babaYaga, err := setupTestNodeDir()
 	if err != nil {
@@ -140,34 +145,50 @@ func TestNode_ForgedTx(t *testing.T) {
 	defer fs.RemoveDir(dataDir)
 
 	n := New(dataDir, "127.0.0.1", 8085, andrej, PeerNode{})
-	ctx, _ := context.WithTimeout(context.Background(), time.Minute*15)
+	ctx, closeNode := context.WithTimeout(context.Background(), time.Minute*30)
 	andrejPeerNode := NewPeerNode("127.0.0.1", 8085, false, andrej, true)
 
 	txValue := uint(5)
 	txNonce := uint(1)
 	tx := database.NewTx(andrej, babaYaga, txValue, txNonce, "")
 
-	signedTx, err := wallet.SignTxWithKeystoreAccount(tx, andrej, testKsAccountsPwd, wallet.GetKeystoreDirPath(dataDir))
+	validSignedTx, err := wallet.SignTxWithKeystoreAccount(tx, andrej, testKsAccountsPwd, wallet.GetKeystoreDirPath(dataDir))
 	if err != nil {
 		t.Error(err)
 		return
 	}
 
-	go func() {
-		time.Sleep(time.Second * 1)
-
-		_ = n.AddPendingTX(signedTx, andrejPeerNode)
-	}()
+	_ = n.AddPendingTX(validSignedTx, andrejPeerNode)
 
 	go func() {
-		time.Sleep(time.Second * (miningIntervalSeconds + 1))
+		ticker := time.NewTicker(time.Second * (miningIntervalSeconds - 3))
+		wasForgedTxAdded := false
 
-		// Attempt to replay the same TX but with modified time
-		// Because the TX.time changed, the TX.signature will be considered forged
-		forgedTx := database.NewTx(andrej, babaYaga, txValue, txNonce, "")
-		forgedSignedTx := database.NewSignedTx(forgedTx, signedTx.Sig)
+		for {
+			select {
+			case <-ticker.C:
+				if !n.state.LatestBlockHash().IsEmpty() {
+					if wasForgedTxAdded && !n.isMining {
+						closeNode()
+						return
+					}
 
-		_ = n.AddPendingTX(forgedSignedTx, andrejPeerNode)
+					if !wasForgedTxAdded {
+						// Attempt to forge the same TX but with modified time
+						// Because the TX.time changed, the TX.signature will be considered forged
+						// database.NewTx() changes the TX time
+						forgedTx := database.NewTx(andrej, babaYaga, txValue, txNonce, "")
+						// Use the signature from a valid TX
+						forgedSignedTx := database.NewSignedTx(forgedTx, validSignedTx.Sig)
+
+						_ = n.AddPendingTX(forgedSignedTx, andrejPeerNode)
+						wasForgedTxAdded = true
+
+						time.Sleep(time.Second * (miningIntervalSeconds + 3))
+					}
+				}
+			}
+		}
 	}()
 
 	_ = n.Run(ctx)
@@ -175,8 +196,17 @@ func TestNode_ForgedTx(t *testing.T) {
 	if n.state.LatestBlock().Header.Number != 0 {
 		t.Fatal("was suppose to mine only one TX. The second TX was forged")
 	}
+
+	if n.state.Balances[babaYaga] != txValue {
+		t.Fatal("forged tx succeeded")
+	}
 }
 
+// Expect:
+//     ERROR: wrong TX. Sender '0x3EB9...' next nonce must be '2', not '1'
+//
+// TODO: Improve this with TX Receipt concept in next chapters.
+// TODO: Improve this with a 100% clear error check.
 func TestNode_ReplayedTx(t *testing.T) {
 	dataDir, andrej, babaYaga, err := setupTestNodeDir()
 	if err != nil {
@@ -208,24 +238,23 @@ func TestNode_ReplayedTx(t *testing.T) {
 		for {
 			select {
 			case <-ticker.C:
-				// The Andrej's original TX got mined.
-				// Execute the attack by replaying the TX again!
-				if n.state.LatestBlock().Header.Number == 0 {
+				if !n.state.LatestBlockHash().IsEmpty() {
 					if wasReplayedTxAdded && !n.isMining {
 						closeNode()
 						return
 					}
 
-					// Simulate the TX was submitted to different node
-					n.archivedTXs = make(map[string]database.SignedTx)
-					// Execute the attack
-					_ = n.AddPendingTX(signedTx, babaYagaPeerNode)
-					wasReplayedTxAdded = true
-				}
+					// The Andrej's original TX got mined.
+					// Execute the attack by replaying the TX again!
+					if !wasReplayedTxAdded {
+						// Simulate the TX was submitted to different node
+						n.archivedTXs = make(map[string]database.SignedTx)
+						// Execute the attack
+						_ = n.AddPendingTX(signedTx, babaYagaPeerNode)
+						wasReplayedTxAdded = true
 
-				if n.state.LatestBlock().Header.Number == 1 {
-					closeNode()
-					return
+						time.Sleep(time.Second * (miningIntervalSeconds + 3))
+					}
 				}
 			}
 		}
@@ -233,7 +262,12 @@ func TestNode_ReplayedTx(t *testing.T) {
 
 	_ = n.Run(ctx)
 
-	if n.state.Balances[babaYaga] == txValue * 2 {
+	if n.state.Balances[babaYaga] == txValue*2 {
+		t.Errorf("replayed attack was successful :( Damn digital signatures!")
+		return
+	}
+
+	if n.state.Balances[babaYaga] != txValue {
 		t.Errorf("replayed attack was successful :( Damn digital signatures!")
 		return
 	}
@@ -260,7 +294,7 @@ func TestNode_MiningStopsOnNewSyncedBlock(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	
+
 	genesisBalances := make(map[common.Address]uint)
 	genesisBalances[andrej] = 1000000
 	genesis := database.Genesis{Balances: genesisBalances}
@@ -268,10 +302,10 @@ func TestNode_MiningStopsOnNewSyncedBlock(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	
+
 	err = database.InitDataDirIfNotExists(dataDir, genesisJson)
 	defer fs.RemoveDir(dataDir)
-	
+
 	err = copyKeystoreFilesIntoTestDataDirPath(dataDir)
 	if err != nil {
 		t.Fatal(err)
@@ -294,13 +328,13 @@ func TestNode_MiningStopsOnNewSyncedBlock(t *testing.T) {
 
 	tx1 := database.NewTx(andrej, babaYaga, 1, 1, "")
 	tx2 := database.NewTx(andrej, babaYaga, 2, 2, "")
-	
+
 	signedTx1, err := wallet.SignTxWithKeystoreAccount(tx1, andrej, testKsAccountsPwd, wallet.GetKeystoreDirPath(dataDir))
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	
+
 	signedTx2, err := wallet.SignTxWithKeystoreAccount(tx2, andrej, testKsAccountsPwd, wallet.GetKeystoreDirPath(dataDir))
 	if err != nil {
 		t.Error(err)
@@ -324,18 +358,21 @@ func TestNode_MiningStopsOnNewSyncedBlock(t *testing.T) {
 	// Add 2 new TXs into the BabaYaga's node, triggers mining
 	go func() {
 		time.Sleep(time.Second * (miningIntervalSeconds - 2))
-		
+
 		err := n.AddPendingTX(signedTx1, nInfo)
 		if err != nil {
 			t.Fatal(err)
 		}
-		
+
 		err = n.AddPendingTX(signedTx2, nInfo)
 		if err != nil {
 			t.Fatal(err)
 		}
 	}()
 
+	// TODO: Fix a race condition when the block gets mined
+	//       before the validBlock gets synced.
+	//
 	// Interrupt the previously started mining with a new synced block
 	// BUT this block contains only 1 TX the previous mining activity tried to mine
 	// which means the mining will start again for the one pending TX that is left and wasn't in
