@@ -59,7 +59,7 @@ func walletPrintPrivKeyCmd() *cobra.Command {
 		Short: "Unlocks keystore file and prints the Private + Public keys.",
 		Run: func(cmd *cobra.Command, args []string) {
 			ksFile, _ := cmd.Flags().GetString(flagKeystoreFile)
-			password := getPassPhrase("Please enter a password to encrypt the new wallet:", true)
+			password := getPassPhrase("Please enter a password to decrypt the wallet:", false)
 
 			keyJson, err := ioutil.ReadFile(ksFile)
 			if err != nil {
