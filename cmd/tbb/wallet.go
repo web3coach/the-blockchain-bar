@@ -12,7 +12,7 @@ import (
 func walletCmd() *cobra.Command {
 	var walletCmd = &cobra.Command{
 		Use:   "wallet",
-		Short: "Manages accounts, keys, cryptography.",
+		Short: "Manages blockchain accounts and keys.",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			return incorrectUsageErr()
 		},
