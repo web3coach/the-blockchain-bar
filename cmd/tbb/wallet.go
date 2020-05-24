@@ -49,8 +49,7 @@ func walletNewAccountCmd() *cobra.Command {
 }
 
 func getPassPhrase(prompt string, confirmation bool) string {
-	fmt.Println(prompt)
-	password, err := console.Stdin.PromptPassword("Password: ")
+	password, err := console.Stdin.PromptPassword(prompt)
 	if err != nil {
 		utils.Fatalf("Failed to read password: %v", err)
 	}
