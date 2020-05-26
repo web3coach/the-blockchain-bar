@@ -72,16 +72,7 @@ func SignTx(tx database.Tx, privKey *ecdsa.PrivateKey) (database.SignedTx, error
 func Sign(msg []byte, privKey *ecdsa.PrivateKey) (sig []byte, err error) {
 	msgHash := sha256.Sum256(msg)
 
-	sig, err = crypto.Sign(msgHash[:], privKey)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(sig) != crypto.SignatureLength {
-		return nil, fmt.Errorf("wrong size for signature: got %d, want %d", len(sig), crypto.SignatureLength)
-	}
-
-	return sig, nil
+	return crypto.Sign(msgHash[:], privKey)
 }
 
 func Verify(msg, sig []byte) (*ecdsa.PublicKey, error) {
