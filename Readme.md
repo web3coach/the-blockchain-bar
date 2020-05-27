@@ -96,6 +96,11 @@ Interacting with TBB blockchain using CLI.
 tbb help
 ```
 
+### Migrate the database to block.db
+```bash
+tbbmigrate
+```
+
 ### Show blockchain balances of all bar's customers
 ```bash
 tbb balances list
