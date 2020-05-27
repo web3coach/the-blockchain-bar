@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/web3coach/the-blockchain-bar/database"
+	"github.com/web3coach/the-blockchain-bar-newsletter-edition/database"
 	"os"
 	"time"
 )
