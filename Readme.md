@@ -70,6 +70,7 @@ git branch
 > c4_caesar_transfer
 > c5_broken_trust
 > c6_immutable_hash
+> c7_blockchain_programming_model
 ```
 
 ## Installation
