@@ -21,12 +21,12 @@ You can `clone` the repository or use `go get` to install it.
 mkdir -p $GOPATH/src/github.com/web3coach
 cd $GOPATH/src/github.com/web3coach
 
-git clone git@github.com:web3coach/the-blockchain-way-of-programming-newsletter-edition.git
+git clone git@github.com:web3coach/the-blockchain-bar-newsletter-edition.git
 ```
 
 PS: Make sure you actually clone it inside the `src/github.com/web3coach` directory, not your own, otherwise it won't compile. Go rules.
 
 #### Using Go get
 ```bash
-go get -u github.com/web3coach/the-blockchain-way-of-programming-newsletter-edition
+go get -u github.com/web3coach/the-blockchain-bar-newsletter-edition
 ```

@@ -1,15 +1,32 @@
 # The Blockchain Bar
-> Build a custom blockchain in Go from scratch.
 
-The source-code for the first 7 chapters of: "The Blockchain Way of Programming".
+> The source-code for the first 7 chapters of: "Build a Blockchain from Scratch in Go".
 
 Download the eBook from: https://web3.coach
 
-![book cover](public/img/book_cover.png)
+![book cover](public/img/book_cover2.png)
 
-## Foreword
+## Introduction
 
-I can't promise the blockchain way of programming will be easy, but this eBook will turn you into a blockchain developer, expand your career prospects, and open you up to a whole new community of amazing forward thinkers.
+Hi :wave:,
+
+With Web 3.0 and blockchain becoming more mainstream every day, do you know what blockchain is? Do you know its technical advantages and use-cases?
+
+**The goal of this tutorial is to introduce blockchain technology from a technical perspective by building one from scratch.**
+
+Forget everything you've heard about blockchain from social media. Now, you will build a blockchain system from ground zero to really understand the ins and outs of this peer-to-peer, distributed technology.
+
+Afterwards, make your own mind up about its future, advantages and shortcomings. 
+
+Spoiler alert: you will fall in love with programming blockchain software. :smiling_imp:
+
+## How?
+
+You will follow the story of a software developer who is looking to revolutionize his local bar by implementing blockchain technology for its payment system.
+
+Although blockchain has several undeniable use-cases, at the moment, the number one application is payments. This is because banks are still running on an inefficient, 40 year old infrastructure powered by CSV files and FTP.
+
+The story comes with a lot of fun and intriguing facts about the overall blockchain ecosystem and different protocols such as Bitcoin, Ethereum and XRP.
 
 ## What will you build?
 
@@ -60,8 +77,9 @@ git branch
 [Open instructions.](./Installation.md)
 
 ## Getting started
-1. Open the eBook at Chapter 1
-1. Checkout the first chapter's branch
+1. Download the eBook from: [https://web3.coach#book](https://web3.coach#book)
+1. Open the book at Chapter 1
+1. Checkout the first chapter's branch `c1_genesis_json`
 
 ```git
 git pull --all
