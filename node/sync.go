@@ -9,6 +9,8 @@ import (
 )
 
 func (n *Node) sync(ctx context.Context) error {
+	n.doSync()
+
 	ticker := time.NewTicker(45 * time.Second)
 
 	for {

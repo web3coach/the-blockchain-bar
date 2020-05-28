@@ -6,14 +6,15 @@ import (
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/web3coach/the-blockchain-bar/database"
-	"github.com/web3coach/the-blockchain-bar/wallet"
 	"net/http"
 	"time"
 )
 
 const DefaultBootstrapIp = "node.tbb.web3.coach"
 const DefaultBootstrapPort = 8080
-const DefaultBootstrapAcc = wallet.AndrejAccount
+
+// The Web3Coach's Genesis account with 1M TBB tokens
+const DefaultBootstrapAcc = "0x09ee50f2f37fcba1845de6fe5c762e83e65e755c"
 const DefaultMiner = "0x0000000000000000000000000000000000000000"
 const DefaultIP = "127.0.0.1"
 const DefaultHTTPort = 8080
@@ -58,9 +59,8 @@ type Node struct {
 
 func New(dataDir string, ip string, port uint64, acc common.Address, bootstrap PeerNode) *Node {
 	knownPeers := make(map[string]PeerNode)
-	knownPeers[bootstrap.TcpAddress()] = bootstrap
 
-	return &Node{
+	n := &Node{
 		dataDir:         dataDir,
 		info:            NewPeerNode(ip, port, false, acc, true),
 		knownPeers:      knownPeers,
@@ -70,6 +70,10 @@ func New(dataDir string, ip string, port uint64, acc common.Address, bootstrap P
 		newPendingTXs:   make(chan database.SignedTx, 10000),
 		isMining:        false,
 	}
+
+	n.AddPeer(bootstrap)
+
+	return n
 }
 
 func NewPeerNode(ip string, port uint64, isBootstrap bool, acc common.Address, connected bool) PeerNode {

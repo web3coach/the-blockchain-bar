@@ -14,7 +14,6 @@ import (
 )
 
 const keystoreDirName = "keystore"
-const AndrejAccount = "0x22ba1F80452E6220c7cc6ea2D1e3EEDDaC5F694A"
 
 func GetKeystoreDirPath(dataDir string) string {
 	return filepath.Join(dataDir, keystoreDirName)

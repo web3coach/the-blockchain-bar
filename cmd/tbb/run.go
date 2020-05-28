@@ -41,12 +41,12 @@ func runCmd() *cobra.Command {
 	}
 
 	addDefaultRequiredFlags(runCmd)
-	runCmd.Flags().String(flagMiner, node.DefaultMiner, "miner account of this node to receive block rewards")
-	runCmd.Flags().String(flagIP, node.DefaultIP, "exposed IP for communication with peers")
-	runCmd.Flags().Uint64(flagPort, node.DefaultHTTPort, "exposed HTTP port for communication with peers")
-	runCmd.Flags().String(flagBootstrapIp, node.DefaultBootstrapIp, "default bootstrap server to interconnect peers")
-	runCmd.Flags().Uint64(flagBootstrapPort, node.DefaultBootstrapPort, "default bootstrap server port to interconnect peers")
-	runCmd.Flags().String(flagBootstrapAcc, node.DefaultBootstrapAcc, "default bootstrap account to interconnect peers")
+	runCmd.Flags().String(flagMiner, node.DefaultMiner, "your node's miner account to receive the block rewards")
+	runCmd.Flags().String(flagIP, node.DefaultIP, "your node's public IP to communication with other peers")
+	runCmd.Flags().Uint64(flagPort, node.DefaultHTTPort, "your node's public HTTP port for communication with other peers")
+	runCmd.Flags().String(flagBootstrapIp, node.DefaultBootstrapIp, "default bootstrap Web3Coach's server to interconnect peers")
+	runCmd.Flags().Uint64(flagBootstrapPort, node.DefaultBootstrapPort, "default bootstrap Web3Coach's server port to interconnect peers")
+	runCmd.Flags().String(flagBootstrapAcc, node.DefaultBootstrapAcc, "default bootstrap Web3Coach's Genesis account with 1M TBB tokens")
 
 	return runCmd
 }

@@ -8,7 +8,7 @@ import (
 const Major = "1"
 const Minor = "0"
 const Fix = "0"
-const Verbal = "Decentralized Auth"
+const Verbal = "TBB Training Ledger"
 
 var versionCmd = &cobra.Command{
 	Use:   "version",

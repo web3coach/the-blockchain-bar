@@ -6,17 +6,18 @@ import (
 	"io/ioutil"
 )
 
-var genesisJson = `
-{
-  "genesis_time": "2019-03-18T00:00:00.000000000Z",
+var genesisJson = `{
+  "genesis_time": "2020-06-01T00:00:00.000000000Z",
   "chain_id": "the-blockchain-bar-ledger",
+  "symbol": "TBB",
   "balances": {
-    "0x22ba1F80452E6220c7cc6ea2D1e3EEDDaC5F694A": 1000000
+    "0x09eE50f2F37FcBA1845dE6FE5C762E83E65E755c": 1000000
   }
 }`
 
 type Genesis struct {
 	Balances map[common.Address]uint `json:"balances"`
+	Symbol   string                  `json:"symbol"`
 }
 
 func loadGenesis(path string) (Genesis, error) {
