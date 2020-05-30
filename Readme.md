@@ -1,12 +1,106 @@
-# The Blockchain Bar
+# The Blockchain Bar eBook
 
-> The source-code for the first 7 chapters of: "Build a Blockchain from Scratch in Go".
+> The source-code for the first 7 chapters of: "Build a Blockchain from Scratch in Go" eBook.
 
 Download the eBook from: [https://web3.coach#book](https://web3.coach#book)
 
 ![book cover](public/img/book_cover2.png)
 
-## Introduction
+# TBB Training Ledger
+## Sneak peek to Chapter 13
+You will build all of this from scratch! Follow the next 4 steps and you will be connected to the TBB testing blockchain network in 30 seconds.
+
+### 1/4 Check the current blockchain network status
+Go ahead. Try it right now! :cupid:
+
+```bash
+curl -X GET http://node.tbb.web3.coach:8080/balances/list
+```
+
+In case you have the [JQ - CLI JSON processor formatter.](https://github.com/stedolan/jq) installed.
+
+```bash
+curl -X GET http://node.tbb.web3.coach:8080/balances/list | jq
+```
+
+```json
+{
+  "block_hash": "000000a9d18730c133869d175a886d576df5675e0e73900bf072c59047b9d734",
+  "balances": {
+    "0x09ee50f2f37fcba1845de6fe5c762e83e65e755c": 1000095,
+    "0x22ba1f80452e6220c7cc6ea2d1e3eeddac5f694a": 5
+  }
+}
+```
+
+### 2/4 Download the pre-compiled blockchain program
+Together with all students, we will use this custom build blockchain for educational purposes.
+
+#### Install
+##### Download
+###### Linux
+```bash
+wget "https://github.com/web3coach/the-blockchain-bar-newsletter-edition/releases/download/1.0.0-alpha/tbb-linux-amd64" -O /usr/local/bin/tbb
+```
+
+###### MacOS
+```bash
+wget "https://github.com/web3coach/the-blockchain-bar-newsletter-edition/releases/download/1.0.0-alpha/tbb-osx" -O /usr/local/bin/tbb
+```
+
+##### Verify the version
+```bash
+chmod a+x /usr/local/bin/tbb
+tbb version
+
+> Version: 1.0.0-beta TBB Training Ledger
+```
+
+### 3/4 Connect to the training network
+```bash
+tbb run --datadir=$HOME/.tbb --ip=127.0.0.1 --port=8081
+```
+
+Your blockchain database will synchronize with rest of the students.
+```json
+Launching TBB node and its HTTP API...
+Listening on: 127.0.0.1:8081
+Blockchain state:
+	- height: 0
+	- hash: 0000000000000000000000000000000000000000000000000000000000000000
+
+Searching for new Peers and their Blocks and Peers: 'node.tbb.web3.coach:8080'
+Found 1 new blocks from Peer node.tbb.web3.coach:8080
+Importing blocks from Peer node.tbb.web3.coach:8080...
+
+Persisting new Block to disk:
+	{"hash":"000000a9d18730c133869d175a886d576df5675e0e73900bf072c59047b9d734","block":{"header":{"parent":"0000000000000000000000000000000000000000000000000000000000000000","number":0,"nonce":1925346453,"time":1590684713,"miner":"0x09ee50f2f37fcba1845de6fe5c762e83e65e755c"},"payload":[{"from":"0x09ee50f2f37fcba1845de6fe5c762e83e65e755c","to":"0x22ba1f80452e6220c7cc6ea2d1e3eeddac5f694a","value":5,"nonce":1,"data":"","time":1590684702,"signature":"0JE1yEoA3gwIiTj5ayanUZfo5ZnN7kHIRQPOw8/OZIRYWjbvbMA7vWdPgoqxnhFGiTH7FIbjCQJ25fQlvMvmPwA="}]}}
+
+
+Searching for new Peers, Blocks: 'node.tbb.web3.coach:8080'
+Searching for new Peers, Blocks: 'node.tbb.web3.coach:8080'
+```
+
+### 4/4 Check the current blockchain network status
+This time from your OWN, fully synchronized blockchain node running directly on your computer.
+
+```bash
+curl -X GET http://127.0.0.1:8081/balances/list | jq
+```
+
+```json
+{
+  "block_hash": "000000a9d18730c133869d175a886d576df5675e0e73900bf072c59047b9d734",
+  "balances": {
+    "0x09ee50f2f37fcba1845de6fe5c762e83e65e755c": 1000095,
+    "0x22ba1f80452e6220c7cc6ea2d1e3eeddac5f694a": 5
+  }
+}
+```
+
+:star: All of this and much more, you will build from scratch!
+
+# Introduction
 
 Hi :wave:,
 
@@ -62,6 +156,7 @@ You will test your cryptographic functions, a Bitcoin's like Proof of Work minin
 Every eBook chapter has a dedicated branch where you can experiment with the code first-hand.
 
 ```git
+git pull --all
 git branch
 
 > c1_genesis_json
@@ -88,13 +183,18 @@ git pull --all
 git checkout c1_genesis_json
 ```
 
-## TBB program usage
+## TBB program usage (first 7 chapters only)
 ### CLI
 Interacting with TBB blockchain using CLI.
 
+### Compile the code
+```bash
+go install ./cmd/...
+```
+
 ### Show current program's version
 ```bash
-tbb help
+tbb version
 ```
 
 ### Show blockchain balances of all bar's customers

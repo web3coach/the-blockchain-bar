@@ -4,7 +4,7 @@
 Follow the official docs or use your favorite dependency manager
 to install Go: [https://golang.org/doc/install](https://golang.org/doc/install)
 
-Verify your `$GOPATH` is correctly set before continuing.
+Verify your `$GOPATH` is correctly set before continuing!
 
 ### Setup this repository
 
