@@ -14,6 +14,6 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Describes version.",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println(fmt.Sprintf("Version: %s.%s.%s-beta %s", Major, Minor, Fix, Verbal))
+		fmt.Println(fmt.Sprintf("Version: %s.%s.%s-alpha %s", Major, Minor, Fix, Verbal))
 	},
 }

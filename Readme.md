@@ -101,16 +101,8 @@ go test -v -p=1 -timeout=0 ./...
 
 **Note:** Majority are integration tests and take time. Expect the test suite to finish in ~30 mins.
 
-## How I deploy to my TBB node server
-```
-ssh tbb
-sudo supervisorctl stop tbb
-sudo rm /usr/local/bin/tbb
-sudo rm /home/ec2-user/tbb
-scp -i ~/.ssh/tbb_aws.pem $GOPATH/bin/tbb ec2-user@ec2-3-127-248-10.eu-central-1.compute.amazonaws.com:/home/ec2-user/tbb
-ssh tbb
-chmod a+x /home/ec2-user/tbb
-sudo ln -s /home/ec2-user/tbb /usr/local/bin/tbb
-tbb version
-sudo supervisorctl start tbb
-```
+## Request 1000 TBB testing tokens
+
+Write a tweet and let me know how did you like this book! Tag me in it [@Web3Coach](https://twitter.com/Web3Coach) and include your account address 0xYOUR_ADDRESS.
+
+See you on Twitter - [@Web3Coach.](https://twitter.com/Web3Coach)
