@@ -1,9 +1,7 @@
 # The Blockchain Bar
 > Build a custom blockchain in Go from scratch.
 
-The full source-code for book: "The Blockchain Way of Programming".
-
-https://web3.coach
+The full source-code.
 
 ## Foreword
 Welcome to the blockchain world!
@@ -38,6 +36,6 @@ Read, experiment with the code and, most importantly, have fun!
 ## Getting Unstuck
 Can't understand why is something done in a particular way or crack your way around a specific chapter's topic?
    
-As I promised, you have my full support. You are not alone in this. Write me a DM on LinkedIn, and I will help you figure it out and move forward on your new journey :)
+As I promised, you have my full support. You are not alone in this. Write me a DM on Twitter, and I will help you figure it out and move forward on your new journey :)
    
-[https://www.linkedin.com/in/llukac](https://www.linkedin.com/in/llukac)
+[https://twitter.com/Web3Coach](https://twitter.com/Web3Coach)
