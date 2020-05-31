@@ -2,9 +2,52 @@
 
 > The source-code for: "Build a Blockchain from Scratch in Go" eBook.
 
-Download the eBook from: [https://web3.coach#book](https://web3.coach#book)
+:books: Download the eBook from: [https://web3.coach#book](https://web3.coach#book)
 
 [![book cover](public/img/book_cover2.png)](https://web3.coach#book)
+
+Table of Contents
+=================
+
+   * [TBB Training Ledger](#tbb-training-ledger)
+      * [Sneak peek to Chapter 13](#sneak-peek-to-chapter-13)
+         * [1/4 Check the current blockchain network status](#14-check-the-current-blockchain-network-status)
+         * [2/4 Download the pre-compiled blockchain program](#24-download-the-pre-compiled-blockchain-program)
+            * [Install](#install)
+               * [Download](#download)
+                  * [Linux](#linux)
+                  * [MacOS](#macos)
+               * [Verify the version](#verify-the-version)
+         * [3/4 Connect to the training network](#34-connect-to-the-training-network)
+         * [4/4 Check the current blockchain network status](#44-check-the-current-blockchain-network-status)
+   * [Introduction](#introduction)
+      * [How?](#how)
+      * [What will you build?](#what-will-you-build)
+         * [1) You will build a peer-to-peer system from scratch](#1-you-will-build-a-peer-to-peer-system-from-scratch)
+         * [2) You will secure the system with a day-to-day practical cryptography](#2-you-will-secure-the-system-with-a-day-to-day-practical-cryptography)
+         * [3) You will implement Bitcoin, Ethereum and XRP backend components](#3-you-will-implement-bitcoin-ethereum-and-xrp-backend-components)
+         * [4) You will write unit tests and integration tests for all core components](#4-you-will-write-unit-tests-and-integration-tests-for-all-core-components)
+      * [How to use this repository](#how-to-use-this-repository)
+      * [Installation](#installation)
+      * [Getting started](#getting-started)
+   * [Usage](#usage)
+      * [Install](#install-1)
+      * [CLI](#cli)
+         * [Show available commands and flags](#show-available-commands-and-flags)
+            * [Show available run settings](#show-available-run-settings)
+         * [Run a TBB node connected to the official book's test network](#run-a-tbb-node-connected-to-the-official-books-test-network)
+         * [Run a TBB bootstrap node in isolation, on your localhost only](#run-a-tbb-bootstrap-node-in-isolation-on-your-localhost-only)
+            * [Run a second TBB node connecting to your first one](#run-a-second-tbb-node-connecting-to-your-first-one)
+         * [Create a new account](#create-a-new-account)
+      * [HTTP](#http)
+         * [List all balances](#list-all-balances)
+         * [Send a signed TX](#send-a-signed-tx)
+         * [Check node's status (latest block, known peers, pending TXs)](#check-nodes-status-latest-block-known-peers-pending-txs)
+      * [Tests](#tests)
+   * [Start](#start)
+      * [Download the eBook](#download-the-ebook)
+   * [Finish](#finish)
+      * [Request 1000 TBB testing tokens](#request-1000-tbb-testing-tokens)
 
 # TBB Training Ledger
 ## Sneak peek to Chapter 13
@@ -166,6 +209,12 @@ git branch
 > c5_broken_trust
 > c6_immutable_hash
 > c7_blockchain_programming_model
+> c8_transparent_db
+> c9_tango
+> c10_peer_sync
+> c11_consensus
+> c12_crypto
+> c13_training_network
 ```
 
 ## Installation
@@ -183,40 +232,102 @@ git pull --all
 git checkout c1_genesis_json
 ```
 
-## TBB program usage (first 7 chapters only)
-### CLI
-Interacting with TBB blockchain using CLI.
+# Usage
 
-### Compile the code
-```bash
+## Install
+```
 go install ./cmd/...
 ```
 
-### Show current program's version
+## CLI
+### Show available commands and flags
 ```bash
+tbb help
+```
+
+#### Show available run settings
+```bash
+tbb run --help
+
+Launches the TBB node and its HTTP API.
+
+Usage:
+  tbb run [flags]
+
+Flags:
+      --bootstrap-account string   default bootstrap Web3Coach's Genesis account with 1M TBB tokens (default "0x09ee50f2f37fcba1845de6fe5c762e83e65e755c")
+      --bootstrap-ip string        default bootstrap Web3Coach's server to interconnect peers (default "node.tbb.web3.coach")
+      --bootstrap-port uint        default bootstrap Web3Coach's server port to interconnect peers (default 8080)
+      --datadir string             Absolute path to your node's data dir where the DB will be/is stored
+  -h, --help                       help for run
+      --ip string                  your node's public IP to communication with other peers (default "127.0.0.1")
+      --miner string               your node's miner account to receive the block rewards (default "0x0000000000000000000000000000000000000000")
+      --port uint                  your node's public HTTP port for communication with other peers (default 8080)
+```
+
+### Run a TBB node connected to the official book's test network 
+```
 tbb version
+> Version: 1.0.0-beta TBB Training Ledger
+
+tbb run --datadir=$HOME/.tbb --ip=127.0.0.1 --port=8081 --miner=0x_YOUR_WALLET_ACCOUNT
 ```
 
-### Show blockchain balances of all bar's customers
-```bash
-tbb balances list
+### Run a TBB bootstrap node in isolation, on your localhost only
+```
+tbb run --datadir=$HOME/.tbb_boostrap --ip=127.0.0.1 --port=8080 --bootstrap-ip=127.0.0.1 --bootstrap-port=8080
 ```
 
-### Store a new TX in the DB
-```bash
-tbb tx add --from=andrej --to=babayaga --value=1000
+#### Run a second TBB node connecting to your first one
+```
+tbb run --datadir=$HOME/.tbb --ip=127.0.0.1 --port=8081 --bootstrap-ip=127.0.0.1 --bootstrap-port=8080
 ```
 
-### Store a new Reward TX in the DB
-```bash
-tbb tx add --from=andrej --to=andrej --value=100 --data=reward
+### Create a new account
+```
+tbb wallet new-account --datadir=$HOME/.tbb 
 ```
 
-## Getting unstuck
-Can't understand why is something done in a particular way or crack your way around a specific chapter's topic?
+## HTTP
+### List all balances
+```
+curl http://localhost:8080/balances/list | jq
+```
 
-Blockchain is a challenging technology.
-   
-Write me a DM on Twitter or create a Github Issue, and I will help you move forward on your new blockchain journey!
-   
-[https://twitter.com/Web3Coach](https://twitter.com/Web3Coach)
+### Send a signed TX
+```
+curl --location --request POST 'http://localhost:8080/tx/add' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+	"from": "0x22ba1f80452e6220c7cc6ea2d1e3eeddac5f694a",
+	"from_pwd": "security123",
+	"to": "0x6fdc0d8d15ae6b4ebf45c52fd2aafbcbb19a65c8",
+	"value": 100
+}'
+```
+
+### Check node's status (latest block, known peers, pending TXs)
+```
+curl http://localhost:8080/node/status | jq
+```
+
+## Tests
+Run all tests with verbosity but one at a time, without timeout, to avoid ports collisions:
+```
+go test -v -p=1 -timeout=0 ./...
+```
+
+**Note:** Majority are integration tests and take time. Expect the test suite to finish in ~30 mins.
+
+# Start
+## Download the eBook
+> Expand your programming career!
+
+:books: Download the eBook from: [https://web3.coach](https://web3.coach)
+
+# Finish
+## Request 1000 TBB testing tokens
+
+Write a tweet and let me know how did you like this book! Tag me in it [@Web3Coach](https://twitter.com/Web3Coach) and include your account address 0xYOUR_ADDRESS.
+
+See you on Twitter - [@Web3Coach.](https://twitter.com/Web3Coach)
