@@ -45,7 +45,8 @@ Table of Contents
          * [Check node's status (latest block, known peers, pending TXs)](#check-nodes-status-latest-block-known-peers-pending-txs)
       * [Tests](#tests)
    * [Start](#start)
-      * [Download the eBook](#download-the-ebook)
+      * [Get the first 7 chapters for FREE](#get-the-first-7-chapters-for-free)
+      * [Buy complete eBook](#buy-complete-ebook)
    * [Finish](#finish)
       * [Request 1000 TBB testing tokens](#request-1000-tbb-testing-tokens)
 
@@ -320,10 +321,15 @@ go test -v -p=1 -timeout=0 ./...
 **Note:** Majority are integration tests and take time. Expect the test suite to finish in ~30 mins.
 
 # Start
-## Download the eBook
-> Expand your programming career!
+## Get the first 7 chapters for FREE
+> Give it a try.
 
-:books: Download the eBook from: [https://web3.coach](https://web3.coach)
+:inbox_tray: Download the newsletter-edition from: [https://web3.coach](https://web3.coach)
+
+## Buy complete eBook
+> Time to expand your programming career!
+
+:books: Purchase from Gumroad: [https://gumroad.com/l/build-a-blockchain-from-scratch-in-go](https://gumroad.com/l/build-a-blockchain-from-scratch-in-go)
 
 # Finish
 ## Request 1000 TBB testing tokens
