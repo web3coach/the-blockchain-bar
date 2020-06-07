@@ -55,3 +55,7 @@ func readRes(r *http.Response, reqBody interface{}) error {
 
 	return nil
 }
+
+func enableCors(w *http.ResponseWriter) {
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+}

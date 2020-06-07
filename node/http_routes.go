@@ -47,6 +47,8 @@ type AddPeerRes struct {
 }
 
 func listBalancesHandler(w http.ResponseWriter, r *http.Request, state *database.State) {
+	enableCors(&w)
+
 	writeRes(w, BalancesRes{state.LatestBlockHash(), state.Balances})
 }
 
@@ -89,6 +91,8 @@ func txAddHandler(w http.ResponseWriter, r *http.Request, node *Node) {
 }
 
 func statusHandler(w http.ResponseWriter, r *http.Request, node *Node) {
+	enableCors(&w)
+
 	res := StatusRes{
 		Hash:       node.state.LatestBlockHash(),
 		Number:     node.state.LatestBlock().Header.Number,
