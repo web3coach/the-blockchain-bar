@@ -58,13 +58,13 @@ You will build all of this from scratch! Follow the next 4 steps and you will be
 Go ahead. Try it right now! :cupid:
 
 ```bash
-curl http://node.tbb.web3.coach/balances/list
+curl https://node.tbb.web3.coach/balances/list
 ```
 
 In case you have the [JQ - CLI JSON processor formatter.](https://github.com/stedolan/jq) installed.
 
 ```bash
-curl http://node.tbb.web3.coach/balances/list | jq
+curl https://node.tbb.web3.coach/balances/list | jq
 ```
 
 ```json
