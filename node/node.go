@@ -81,7 +81,7 @@ func NewPeerNode(ip string, port uint64, isBootstrap bool, acc common.Address, c
 	return PeerNode{ip, port, isBootstrap, acc, connected}
 }
 
-func (n *Node) Run(ctx context.Context, isSSLDisabled bool) error {
+func (n *Node) Run(ctx context.Context, isSSLDisabled bool, sslEmail string) error {
 	fmt.Println(fmt.Sprintf("Listening on: %s:%d", n.info.IP, n.info.Port))
 
 	state, err := database.NewStateFromDisk(n.dataDir)
@@ -99,10 +99,10 @@ func (n *Node) Run(ctx context.Context, isSSLDisabled bool) error {
 	go n.sync(ctx)
 	go n.mine(ctx)
 
-	return n.serveHttp(ctx, isSSLDisabled)
+	return n.serveHttp(ctx, isSSLDisabled, sslEmail)
 }
 
-func (n *Node) serveHttp(ctx context.Context, isSSLDisabled bool) error {
+func (n *Node) serveHttp(ctx context.Context, isSSLDisabled bool, sslEmail string) error {
 	handler := http.NewServeMux()
 
 	handler.HandleFunc("/balances/list", func(w http.ResponseWriter, r *http.Request) {
@@ -141,6 +141,8 @@ func (n *Node) serveHttp(ctx context.Context, isSSLDisabled bool) error {
 
 		return nil
 	} else {
+		certmagic.DefaultACME.Email = sslEmail
+
 		return certmagic.HTTPS([]string{n.info.IP}, handler)
 	}
 }
