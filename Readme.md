@@ -84,12 +84,12 @@ Together with all students, we will use this custom build blockchain for educati
 ##### Download
 ###### Linux
 ```bash
-wget "https://github.com/web3coach/the-blockchain-bar/releases/download/1.0.0-alpha/tbb-linux-amd64" -O /usr/local/bin/tbb
+wget "https://github.com/web3coach/the-blockchain-bar/releases/download/1.2.0-alpha/tbb-linux-amd64" -O /usr/local/bin/tbb
 ```
 
 ###### MacOS
 ```bash
-wget "https://github.com/web3coach/the-blockchain-bar/releases/download/1.0.0-alpha/tbb-osx" -O /usr/local/bin/tbb
+wget "https://github.com/web3coach/the-blockchain-bar/releases/download/1.2.0-alpha/tbb-osx" -O /usr/local/bin/tbb
 ```
 
 ##### Verify the version
@@ -97,7 +97,7 @@ wget "https://github.com/web3coach/the-blockchain-bar/releases/download/1.0.0-al
 chmod a+x /usr/local/bin/tbb
 tbb version
 
-> Version: 1.0.0-beta TBB Training Ledger
+> Version: 1.2.0-alpha TBB Training Ledger - HTTPS
 ```
 
 ### 3/4 Connect to the training network from localhost
