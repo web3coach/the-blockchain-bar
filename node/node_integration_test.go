@@ -46,7 +46,7 @@ func TestNode_Run(t *testing.T) {
 	n := New(datadir, "127.0.0.1", 8085, database.NewAccount(DefaultMiner), PeerNode{})
 
 	ctx, _ := context.WithTimeout(context.Background(), time.Second*5)
-	err = n.Run(ctx)
+	err = n.Run(ctx, true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -125,7 +125,7 @@ func TestNode_Mining(t *testing.T) {
 	}()
 
 	// Run the node, mining and everything in a blocking call (hence the go-routines before)
-	_ = n.Run(ctx)
+	_ = n.Run(ctx, true)
 
 	if n.state.LatestBlock().Header.Number != 1 {
 		t.Fatal("2 pending TX not mined into 2 under 30m")
@@ -191,7 +191,7 @@ func TestNode_ForgedTx(t *testing.T) {
 		}
 	}()
 
-	_ = n.Run(ctx)
+	_ = n.Run(ctx, true)
 
 	if n.state.LatestBlock().Header.Number != 0 {
 		t.Fatal("was suppose to mine only one TX. The second TX was forged")
@@ -260,7 +260,7 @@ func TestNode_ReplayedTx(t *testing.T) {
 		}
 	}()
 
-	_ = n.Run(ctx)
+	_ = n.Run(ctx, true)
 
 	if n.state.Balances[babaYaga] == txValue*2 {
 		t.Errorf("replayed attack was successful :( Damn digital signatures!")
@@ -458,7 +458,7 @@ func TestNode_MiningStopsOnNewSyncedBlock(t *testing.T) {
 		t.Logf("Ending BabaYaga balance: %d", endBabaYagaBalance)
 	}()
 
-	_ = n.Run(ctx)
+	_ = n.Run(ctx, true)
 
 	if n.state.LatestBlock().Header.Number != 1 {
 		t.Fatal("was suppose to mine 2 pending TX into 2 valid blocks under 30m")

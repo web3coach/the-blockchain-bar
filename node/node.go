@@ -8,16 +8,17 @@ import (
 	"github.com/web3coach/the-blockchain-bar/database"
 	"net/http"
 	"time"
+	"github.com/caddyserver/certmagic"
 )
 
 const DefaultBootstrapIp = "node.tbb.web3.coach"
-const DefaultBootstrapPort = 8080
+const DefaultBootstrapPort = 443
 
 // The Web3Coach's Genesis account with 1M TBB tokens
 const DefaultBootstrapAcc = "0x09ee50f2f37fcba1845de6fe5c762e83e65e755c"
 const DefaultMiner = "0x0000000000000000000000000000000000000000"
 const DefaultIP = "127.0.0.1"
-const DefaultHTTPort = 8080
+const DefaultHTTPort = 443
 const endpointStatus = "/node/status"
 
 const endpointSync = "/node/sync"
@@ -80,7 +81,7 @@ func NewPeerNode(ip string, port uint64, isBootstrap bool, acc common.Address, c
 	return PeerNode{ip, port, isBootstrap, acc, connected}
 }
 
-func (n *Node) Run(ctx context.Context) error {
+func (n *Node) Run(ctx context.Context, isSSLDisabled bool) error {
 	fmt.Println(fmt.Sprintf("Listening on: %s:%d", n.info.IP, n.info.Port))
 
 	state, err := database.NewStateFromDisk(n.dataDir)
@@ -98,10 +99,14 @@ func (n *Node) Run(ctx context.Context) error {
 	go n.sync(ctx)
 	go n.mine(ctx)
 
+	return n.serveHttp(ctx, isSSLDisabled)
+}
+
+func (n *Node) serveHttp(ctx context.Context, isSSLDisabled bool) error {
 	handler := http.NewServeMux()
 
 	handler.HandleFunc("/balances/list", func(w http.ResponseWriter, r *http.Request) {
-		listBalancesHandler(w, r, state)
+		listBalancesHandler(w, r, n.state)
 	})
 
 	handler.HandleFunc("/tx/add", func(w http.ResponseWriter, r *http.Request) {
@@ -120,20 +125,24 @@ func (n *Node) Run(ctx context.Context) error {
 		addPeerHandler(w, r, n)
 	})
 
-	server := &http.Server{Addr: fmt.Sprintf(":%d", n.info.Port), Handler: handler}
+	if isSSLDisabled {
+		server := &http.Server{Addr: fmt.Sprintf(":%d", n.info.Port), Handler: handler}
 
-	go func() {
-		<-ctx.Done()
-		_ = server.Close()
-	}()
+		go func() {
+			<-ctx.Done()
+			_ = server.Close()
+		}()
 
-	err = server.ListenAndServe()
-	// This shouldn't be an error!
-	if err != http.ErrServerClosed {
-		return err
+		err := server.ListenAndServe()
+		// This shouldn't be an error!
+		if err != http.ErrServerClosed {
+			return err
+		}
+
+		return nil
+	} else {
+		return certmagic.HTTPS([]string{n.info.IP}, handler)
 	}
-
-	return nil
 }
 
 func (n *Node) LatestBlockHash() database.Hash {
