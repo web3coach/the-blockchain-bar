@@ -143,7 +143,8 @@ func (n *Node) joinKnownPeers(peer PeerNode) error {
 	}
 
 	url := fmt.Sprintf(
-		"http://%s%s?%s=%s&%s=%d",
+		"%s://%s%s?%s=%s&%s=%d",
+		peer.ApiProtocol(),
 		peer.TcpAddress(),
 		endpointAddPeer,
 		endpointAddPeerQueryKeyIP,
@@ -179,7 +180,7 @@ func (n *Node) joinKnownPeers(peer PeerNode) error {
 }
 
 func queryPeerStatus(peer PeerNode) (StatusRes, error) {
-	url := fmt.Sprintf("http://%s%s", peer.TcpAddress(), endpointStatus)
+	url := fmt.Sprintf("%s://%s%s", peer.ApiProtocol(), peer.TcpAddress(), endpointStatus)
 	res, err := http.Get(url)
 	if err != nil {
 		return StatusRes{}, err
@@ -198,7 +199,8 @@ func fetchBlocksFromPeer(peer PeerNode, fromBlock database.Hash) ([]database.Blo
 	fmt.Printf("Importing blocks from Peer %s...\n", peer.TcpAddress())
 
 	url := fmt.Sprintf(
-		"http://%s%s?%s=%s",
+		"%s://%s%s?%s=%s",
+		peer.ApiProtocol(),
 		peer.TcpAddress(),
 		endpointSync,
 		endpointSyncQueryKeyFromBlock,

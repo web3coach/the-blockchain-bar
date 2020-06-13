@@ -34,7 +34,7 @@ func runCmd() *cobra.Command {
 			)
 
 			if !isSSLDisabled {
-				port = node.DefaultHTTPort
+				port = node.HttpSSLPort
 			}
 
 			n := node.New(getDataDirFromCmd(cmd), ip, port, database.NewAccount(miner), bootstrap)
@@ -51,9 +51,9 @@ func runCmd() *cobra.Command {
 	runCmd.Flags().String(flagSSLEmail, "", "your node's HTTP SSL certificate email")
 	runCmd.Flags().String(flagMiner, node.DefaultMiner, "your node's miner account to receive the block rewards")
 	runCmd.Flags().String(flagIP, node.DefaultIP, "your node's public IP to communication with other peers")
-	runCmd.Flags().Uint64(flagPort, node.DefaultHTTPort, "your node's public HTTP port for communication with other peers (configurable if SSL is disabled)")
+	runCmd.Flags().Uint64(flagPort, node.HttpSSLPort, "your node's public HTTP port for communication with other peers (configurable if SSL is disabled)")
 	runCmd.Flags().String(flagBootstrapIp, node.DefaultBootstrapIp, "default bootstrap Web3Coach's server to interconnect peers")
-	runCmd.Flags().Uint64(flagBootstrapPort, node.DefaultBootstrapPort, "default bootstrap Web3Coach's server port to interconnect peers")
+	runCmd.Flags().Uint64(flagBootstrapPort, node.HttpSSLPort, "default bootstrap Web3Coach's server port to interconnect peers")
 	runCmd.Flags().String(flagBootstrapAcc, node.DefaultBootstrapAcc, "default bootstrap Web3Coach's Genesis account with 1M TBB tokens")
 
 	return runCmd

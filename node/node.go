@@ -12,13 +12,12 @@ import (
 )
 
 const DefaultBootstrapIp = "node.tbb.web3.coach"
-const DefaultBootstrapPort = 443
 
 // The Web3Coach's Genesis account with 1M TBB tokens
 const DefaultBootstrapAcc = "0x09ee50f2f37fcba1845de6fe5c762e83e65e755c"
 const DefaultMiner = "0x0000000000000000000000000000000000000000"
 const DefaultIP = "127.0.0.1"
-const DefaultHTTPort = 443
+const HttpSSLPort = 443
 const endpointStatus = "/node/status"
 
 const endpointSync = "/node/sync"
@@ -43,6 +42,14 @@ type PeerNode struct {
 
 func (pn PeerNode) TcpAddress() string {
 	return fmt.Sprintf("%s:%d", pn.IP, pn.Port)
+}
+
+func (pn PeerNode) ApiProtocol() string {
+	if pn.Port == HttpSSLPort {
+		return "https"
+	}
+
+	return "http"
 }
 
 type Node struct {
