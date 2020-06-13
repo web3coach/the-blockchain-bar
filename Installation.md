@@ -1,6 +1,6 @@
 ## Installation
 
-### Install Go 1.13 or higher
+### Install Go 1.14 or higher
 Follow the official docs or use your favorite dependency manager
 to install Go: [https://golang.org/doc/install](https://golang.org/doc/install)
 

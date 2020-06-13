@@ -58,13 +58,13 @@ You will build all of this from scratch! Follow the next 4 steps and you will be
 Go ahead. Try it right now! :cupid:
 
 ```bash
-curl http://node.tbb.web3.coach:8080/balances/list
+curl http://node.tbb.web3.coach/balances/list
 ```
 
 In case you have the [JQ - CLI JSON processor formatter.](https://github.com/stedolan/jq) installed.
 
 ```bash
-curl http://node.tbb.web3.coach:8080/balances/list | jq
+curl http://node.tbb.web3.coach/balances/list | jq
 ```
 
 ```json
@@ -100,9 +100,9 @@ tbb version
 > Version: 1.0.0-beta TBB Training Ledger
 ```
 
-### 3/4 Connect to the training network
+### 3/4 Connect to the training network from localhost
 ```bash
-tbb run --datadir=$HOME/.tbb --ip=127.0.0.1 --port=8081
+tbb run --datadir=$HOME/.tbb --ip=127.0.0.1 --port=8081 --disable-ssl
 ```
 
 Your blockchain database will synchronize with rest of the students.
@@ -113,16 +113,16 @@ Blockchain state:
 	- height: 0
 	- hash: 0000000000000000000000000000000000000000000000000000000000000000
 
-Searching for new Peers and their Blocks and Peers: 'node.tbb.web3.coach:8080'
-Found 1 new blocks from Peer node.tbb.web3.coach:8080
-Importing blocks from Peer node.tbb.web3.coach:8080...
+Searching for new Peers and their Blocks and Peers: 'node.tbb.web3.coach'
+Found 1 new blocks from Peer node.tbb.web3.coach
+Importing blocks from Peer node.tbb.web3.coach...
 
 Persisting new Block to disk:
 	{"hash":"000000a9d18730c133869d175a886d576df5675e0e73900bf072c59047b9d734","block":{"header":{"parent":"0000000000000000000000000000000000000000000000000000000000000000","number":0,"nonce":1925346453,"time":1590684713,"miner":"0x09ee50f2f37fcba1845de6fe5c762e83e65e755c"},"payload":[{"from":"0x09ee50f2f37fcba1845de6fe5c762e83e65e755c","to":"0x22ba1f80452e6220c7cc6ea2d1e3eeddac5f694a","value":5,"nonce":1,"data":"","time":1590684702,"signature":"0JE1yEoA3gwIiTj5ayanUZfo5ZnN7kHIRQPOw8/OZIRYWjbvbMA7vWdPgoqxnhFGiTH7FIbjCQJ25fQlvMvmPwA="}]}}
 
 
-Searching for new Peers, Blocks: 'node.tbb.web3.coach:8080'
-Searching for new Peers, Blocks: 'node.tbb.web3.coach:8080'
+Searching for new Peers, Blocks: 'node.tbb.web3.coach'
+Searching for new Peers, Blocks: 'node.tbb.web3.coach'
 ```
 
 ### 4/4 Check the current blockchain network status
@@ -258,35 +258,48 @@ Usage:
 Flags:
       --bootstrap-account string   default bootstrap Web3Coach's Genesis account with 1M TBB tokens (default "0x09ee50f2f37fcba1845de6fe5c762e83e65e755c")
       --bootstrap-ip string        default bootstrap Web3Coach's server to interconnect peers (default "node.tbb.web3.coach")
-      --bootstrap-port uint        default bootstrap Web3Coach's server port to interconnect peers (default 8080)
+      --bootstrap-port uint        default bootstrap Web3Coach's server port to interconnect peers (default 443)
       --datadir string             Absolute path to your node's data dir where the DB will be/is stored
+      --disable-ssl                should the HTTP API SSL certificate be disabled? (default false)
   -h, --help                       help for run
       --ip string                  your node's public IP to communication with other peers (default "127.0.0.1")
       --miner string               your node's miner account to receive the block rewards (default "0x0000000000000000000000000000000000000000")
-      --port uint                  your node's public HTTP port for communication with other peers (default 8080)
+      --port uint                  your node's public HTTP port for communication with other peers (configurable if SSL is disabled) (default 443)
 ```
 
 ### Run a TBB node connected to the official book's test network 
+If you are running the node on your localhost, just disable the SSL with `--disable-ssl` flag.
+
 ```
 tbb version
-> Version: 1.0.0-beta TBB Training Ledger
+> Version: 1.2.0-alpha TBB Training Ledger - HTTPS
 
-tbb run --datadir=$HOME/.tbb --ip=127.0.0.1 --port=8081 --miner=0x_YOUR_WALLET_ACCOUNT
+tbb run --datadir=$HOME/.tbb --ip=127.0.0.1 --port=8081 --miner=0x_YOUR_WALLET_ACCOUNT --disable-ssl
 ```
 
 ### Run a TBB bootstrap node in isolation, on your localhost only
 ```
-tbb run --datadir=$HOME/.tbb_boostrap --ip=127.0.0.1 --port=8080 --bootstrap-ip=127.0.0.1 --bootstrap-port=8080
+tbb run --datadir=$HOME/.tbb_boostrap --ip=127.0.0.1 --port=8080 --bootstrap-ip=127.0.0.1 --bootstrap-port=8080 --disable-ssl
 ```
 
 #### Run a second TBB node connecting to your first one
 ```
-tbb run --datadir=$HOME/.tbb --ip=127.0.0.1 --port=8081 --bootstrap-ip=127.0.0.1 --bootstrap-port=8080
+tbb run --datadir=$HOME/.tbb --ip=127.0.0.1 --port=8081 --bootstrap-ip=127.0.0.1 --bootstrap-port=8080 --disable-ssl
 ```
 
 ### Create a new account
 ```
 tbb wallet new-account --datadir=$HOME/.tbb 
+```
+
+### Run a TBB node in production
+The default node's HTTP port is 443. The SSL certificate is generated automatically as long as the DNS A/AAAA records point at your server.
+
+#### Production Server
+Example how the official TBB bootstrap node is launched. Customize the `--datadir`, `--miner`, and `--ip` values to match your server.
+
+```bash
+/usr/local/bin/tbb run --datadir=/home/ec2-user/.tbb --miner=0x09ee50f2f37fcba1845de6fe5c762e83e65e755c --ip=node.tbb.web3.coach --port=443 --bootstrap-ip=node.tbb.web3.coach --bootstrap-port=443 --bootstrap-account=0x09ee50f2f37fcba1845de6fe5c762e83e65e755c
 ```
 
 ## HTTP
@@ -316,6 +329,11 @@ curl http://localhost:8080/node/status | jq
 Run all tests with verbosity but one at a time, without timeout, to avoid ports collisions:
 ```
 go test -v -p=1 -timeout=0 ./...
+```
+
+Run an individual test:
+```
+go test -timeout=0 ./node -test.v -test.run ^TestNode_Mining$
 ```
 
 **Note:** Majority are integration tests and take time. Expect the test suite to finish in ~30 mins.

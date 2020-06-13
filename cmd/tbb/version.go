@@ -6,9 +6,9 @@ import (
 )
 
 const Major = "1"
-const Minor = "1"
+const Minor = "2"
 const Fix = "0"
-const Verbal = "TBB Training Ledger - CORS"
+const Verbal = "TBB Training Ledger - HTTPS"
 
 var versionCmd = &cobra.Command{
 	Use:   "version",
