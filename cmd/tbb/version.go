@@ -7,7 +7,7 @@ import (
 
 const Major = "0"
 const Minor = "1"
-const Fix = "0"
+const Fix = "1"
 const Verbal = "TX Add && Balances List"
 
 var versionCmd = &cobra.Command{
