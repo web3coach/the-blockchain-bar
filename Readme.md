@@ -2,7 +2,7 @@
 
 > The source-code for: "Build a Blockchain from Scratch in Go" eBook.
 
-:books: Download the eBook from: [https://web3.coach#book](https://web3.coach#book)
+:books: Get the eBook from: [https://web3.coach/blockchain/backend-tutorial](https://web3.coach/blockchain/backend-tutorial)
 
 [![book cover](public/img/book_cover2.png)](https://web3.coach#book)
 
@@ -45,8 +45,7 @@ Table of Contents
          * [Check node's status (latest block, known peers, pending TXs)](#check-nodes-status-latest-block-known-peers-pending-txs)
       * [Tests](#tests)
    * [Start](#start)
-      * [Get the first 7 chapters for FREE](#get-the-first-7-chapters-for-free)
-      * [Buy complete eBook](#buy-complete-ebook)
+      * [Tutorial](#tutorial)
    * [Finish](#finish)
       * [Request 1000 TBB testing tokens](#request-1000-tbb-testing-tokens)
 
@@ -339,15 +338,9 @@ go test -timeout=0 ./node -test.v -test.run ^TestNode_Mining$
 **Note:** Majority are integration tests and take time. Expect the test suite to finish in ~30 mins.
 
 # Start
-## Get the first 7 chapters for FREE
-> Give it a try.
+## Tutorial
 
-:inbox_tray: Download the newsletter-edition from: [https://web3.coach](https://web3.coach)
-
-## Buy complete eBook
-> Time to expand your programming career!
-
-:books: Purchase from Gumroad: [https://gumroad.com/l/build-a-blockchain-from-scratch-in-go](https://gumroad.com/l/build-a-blockchain-from-scratch-in-go)
+:books: Get the eBook from: [https://web3.coach/blockchain/backend-tutorial](https://web3.coach/blockchain/backend-tutorial) 
 
 # Finish
 ## Request 1000 TBB testing tokens
