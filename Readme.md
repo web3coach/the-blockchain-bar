@@ -222,7 +222,7 @@ git branch
 [Open instructions.](./Installation.md)
 
 ## Getting started
-1. Download the eBook from: [https://web3.coach#book](https://web3.coach#book)
+1. Download the eBook from: [https://gumroad.com/l/build-a-blockchain-from-scratch-in-go](https://gumroad.com/l/build-a-blockchain-from-scratch-in-go)
 1. Open the book at Chapter 1
 1. Checkout the first chapter's branch `c1_genesis_json`
 
