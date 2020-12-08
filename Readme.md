@@ -2,7 +2,7 @@
 
 > The source-code for: "Build a Blockchain from Scratch in Go" eBook.
 
-:books: Get the eBook from: [https://web3.coach/blockchain/backend-tutorial](https://web3.coach/blockchain/backend-tutorial)
+:books: Get the eBook from: [https://gumroad.com/l/build-a-blockchain-from-scratch-in-go](https://gumroad.com/l/build-a-blockchain-from-scratch-in-go)
 
 [![book cover](public/img/book_cover2.png)](https://web3.coach#book)
 
@@ -340,7 +340,7 @@ go test -timeout=0 ./node -test.v -test.run ^TestNode_Mining$
 # Start
 ## Tutorial
 
-:books: Get the eBook from: [https://web3.coach/blockchain/backend-tutorial](https://web3.coach/blockchain/backend-tutorial) 
+:books: Get the eBook from: [https://gumroad.com/l/build-a-blockchain-from-scratch-in-go](https://gumroad.com/l/build-a-blockchain-from-scratch-in-go) 
 
 # Finish
 ## Request 1000 TBB testing tokens
@@ -348,3 +348,8 @@ go test -timeout=0 ./node -test.v -test.run ^TestNode_Mining$
 Write a tweet and let me know how did you like this book! Tag me in it [@Web3Coach](https://twitter.com/Web3Coach) and include your account address 0xYOUR_ADDRESS.
 
 See you on Twitter - [@Web3Coach.](https://twitter.com/Web3Coach)
+
+# License
+The the-blockchain-bar library (i.e. all code outside of the cmd directory) is licensed under the GNU Lesser General Public License v3.0, also included in our repository in the COPYING.LESSER file.
+
+The the-blockchain-bar binaries (i.e. all code inside of the cmd directory) is licensed under the GNU General Public License v3.0, also included in our repository in the COPYING file.
