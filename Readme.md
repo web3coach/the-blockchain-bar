@@ -167,7 +167,9 @@ The story comes with a lot of fun and intriguing facts about the overall blockch
 
 ## What will you build?
 
-Chapter by chapter, you will build a full peer-to-peer, autonomous blockchain system in Go and **learn all standard blockchain components!**
+Chapter by chapter, you will build a full peer-to-peer, autonomous training blockchain system in Go and **learn all standard blockchain components!**
+
+**Note: This codebase is only for educational (training, learning) purposes. Do not use this code in production.**
 
 ### 1) You will build a peer-to-peer system from scratch
 
@@ -291,10 +293,10 @@ tbb run --datadir=$HOME/.tbb --ip=127.0.0.1 --port=8081 --bootstrap-ip=127.0.0.1
 tbb wallet new-account --datadir=$HOME/.tbb 
 ```
 
-### Run a TBB node in production
+### Run a TBB node with SSL
 The default node's HTTP port is 443. The SSL certificate is generated automatically as long as the DNS A/AAAA records point at your server.
 
-#### Production Server
+#### Official Testing Bootstrap Server
 Example how the official TBB bootstrap node is launched. Customize the `--datadir`, `--miner`, and `--ip` values to match your server.
 
 ```bash
