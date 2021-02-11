@@ -68,7 +68,7 @@ func TestNode_Run(t *testing.T) {
 }
 
 func TestNode_Mining(t *testing.T) {
-	dataDir, andrej, babaYaga, err := setupTestNodeDir()
+	dataDir, andrej, babaYaga, err := setupTestNodeDir(1000000)
 	if err != nil {
 		t.Error(err)
 	}
@@ -153,7 +153,7 @@ func TestNode_Mining(t *testing.T) {
 // TODO: Improve this with TX Receipt concept in next chapters.
 // TODO: Improve this with a 100% clear error check.
 func TestNode_ForgedTx(t *testing.T) {
-	dataDir, andrej, babaYaga, err := setupTestNodeDir()
+	dataDir, andrej, babaYaga, err := setupTestNodeDir(1000000)
 	if err != nil {
 		t.Error(err)
 	}
@@ -223,7 +223,7 @@ func TestNode_ForgedTx(t *testing.T) {
 // TODO: Improve this with TX Receipt concept in next chapters.
 // TODO: Improve this with a 100% clear error check.
 func TestNode_ReplayedTx(t *testing.T) {
-	dataDir, andrej, babaYaga, err := setupTestNodeDir()
+	dataDir, andrej, babaYaga, err := setupTestNodeDir(1000000)
 	if err != nil {
 		t.Error(err)
 	}
@@ -484,6 +484,70 @@ func TestNode_MiningStopsOnNewSyncedBlock(t *testing.T) {
 	}
 }
 
+func TestNode_MiningSpamTransactions(t *testing.T) {
+	andrejBalance := uint(1000)
+	babaYagaBalance := uint(0)
+	dataDir, andrej, babaYaga, err := setupTestNodeDir(andrejBalance)
+	if err != nil {
+		t.Error(err)
+	}
+	defer fs.RemoveDir(dataDir)
+
+	n := New(dataDir, "127.0.0.1", 8085, andrej, PeerNode{})
+	ctx, closeNode := context.WithCancel(context.Background())
+	andrejPeerNode := NewPeerNode("127.0.0.1", 8085, false, andrej, true)
+
+	txValue := uint(200)
+
+	// Schedule 4 transfers from Andrej -> BabaYaga
+	txCount := uint(4)
+	for i := uint(1); i <= txCount; i++ {
+		txNonce := i
+		tx := database.NewTx(andrej, babaYaga, txValue, txNonce, "")
+
+		signedTx, err := wallet.SignTxWithKeystoreAccount(tx, andrej, testKsAccountsPwd, wallet.GetKeystoreDirPath(dataDir))
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		_ = n.AddPendingTX(signedTx, andrejPeerNode)
+	}
+
+	go func() {
+		// Periodically check if we mined the block
+		ticker := time.NewTicker(10 * time.Second)
+
+		for {
+			select {
+			case <-ticker.C:
+				if !n.state.LatestBlockHash().IsEmpty() {
+					closeNode()
+					return
+				}
+			}
+		}
+	}()
+
+	// Run the node, mining and everything in a blocking call (hence the go-routines before)
+	_ = n.Run(ctx, true, "")
+
+	expectedAndrejBalance := andrejBalance - (txCount * txValue) + database.BlockReward
+	expectedBabaYagaBalance := babaYagaBalance + (txCount * txValue)
+
+	if n.state.Balances[andrej] != expectedAndrejBalance {
+		t.Errorf("Andrej balance is incorrect. Expected: %d. Got: %d", expectedAndrejBalance, n.state.Balances[andrej])
+		return
+	}
+
+	if n.state.Balances[babaYaga] != expectedBabaYagaBalance {
+		t.Errorf("BabaYaga balance is incorrect. Expected: %d. Got: %d", expectedBabaYagaBalance, n.state.Balances[babaYaga])
+		return
+	}
+
+	t.Logf("Andrej final balance: %d TBB", n.state.Balances[andrej])
+	t.Logf("BabaYaga final balance: %d TBB", n.state.Balances[babaYaga])
+}
+
 // Creates dir like: "/tmp/tbb_test945924586"
 func getTestDataDirPath() (string, error) {
 	return ioutil.TempDir(os.TempDir(), "tbb_test")
@@ -542,7 +606,7 @@ func copyKeystoreFilesIntoTestDataDirPath(dataDir string) error {
 // setupTestNodeDir creates a default testing node directory with 2 keystore accounts
 //
 // Remember to remove the dir once test finishes: defer fs.RemoveDir(dataDir)
-func setupTestNodeDir() (dataDir string, andrej, babaYaga common.Address, err error) {
+func setupTestNodeDir(andrejBalance uint) (dataDir string, andrej, babaYaga common.Address, err error) {
 	babaYaga = database.NewAccount(testKsBabaYagaAccount)
 	andrej = database.NewAccount(testKsAndrejAccount)
 
@@ -552,7 +616,7 @@ func setupTestNodeDir() (dataDir string, andrej, babaYaga common.Address, err er
 	}
 
 	genesisBalances := make(map[common.Address]uint)
-	genesisBalances[andrej] = 1000000
+	genesisBalances[andrej] = andrejBalance
 	genesis := database.Genesis{Balances: genesisBalances}
 	genesisJson, err := json.Marshal(genesis)
 	if err != nil {
