@@ -251,13 +251,11 @@ func applyTx(tx SignedTx, s *State) error {
 		return fmt.Errorf("wrong TX. Sender '%s' next nonce must be '%d', not '%d'", tx.From.String(), expectedNonce, tx.Nonce)
 	}
 
-	txCost := tx.Value + TxFee
-
-	if txCost > s.Balances[tx.From] {
-		return fmt.Errorf("wrong TX. Sender '%s' balance is %d TBB. Tx cost is %d TBB", tx.From.String(), s.Balances[tx.From], txCost)
+	if tx.Cost() > s.Balances[tx.From] {
+		return fmt.Errorf("wrong TX. Sender '%s' balance is %d TBB. Tx cost is %d TBB", tx.From.String(), s.Balances[tx.From], tx.Cost())
 	}
 
-	s.Balances[tx.From] -= txCost
+	s.Balances[tx.From] -= tx.Cost()
 	s.Balances[tx.To] += tx.Value
 
 	s.Account2Nonce[tx.From] = tx.Nonce

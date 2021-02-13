@@ -54,6 +54,10 @@ func (t Tx) IsReward() bool {
 	return t.Data == "reward"
 }
 
+func (t Tx) Cost() uint {
+	return t.Value + TxFee
+}
+
 func (t Tx) Hash() (Hash, error) {
 	txJson, err := t.Encode()
 	if err != nil {

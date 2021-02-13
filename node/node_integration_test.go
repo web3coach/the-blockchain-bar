@@ -456,15 +456,15 @@ func TestNode_MiningStopsOnNewSyncedBlock(t *testing.T) {
 
 		// In TX1 Andrej transferred 1 TBB token to BabaYaga
 		// In TX2 Andrej transferred 2 TBB tokens to BabaYaga
-		expectedEndAndrejBalance := startingAndrejBalance - tx1.Value - tx2.Value + database.BlockReward
-		expectedEndBabaYagaBalance := startingBabaYagaBalance + tx1.Value + tx2.Value + database.BlockReward
+		expectedEndAndrejBalance := startingAndrejBalance - tx1.Cost() - tx2.Cost() + database.BlockReward + database.TxFee
+		expectedEndBabaYagaBalance := startingBabaYagaBalance + tx1.Value + tx2.Value + database.BlockReward + database.TxFee
 
 		if endAndrejBalance != expectedEndAndrejBalance {
-			t.Fatalf("Andrej expected end balance is %d not %d", expectedEndAndrejBalance, endAndrejBalance)
+			t.Errorf("Andrej expected end balance is %d not %d", expectedEndAndrejBalance, endAndrejBalance)
 		}
 
 		if endBabaYagaBalance != expectedEndBabaYagaBalance {
-			t.Fatalf("BabaYaga expected end balance is %d not %d", expectedEndBabaYagaBalance, endBabaYagaBalance)
+			t.Errorf("BabaYaga expected end balance is %d not %d", expectedEndBabaYagaBalance, endBabaYagaBalance)
 		}
 
 		t.Logf("Starting Andrej balance: %d", startingAndrejBalance)
