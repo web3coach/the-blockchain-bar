@@ -21,9 +21,9 @@ import (
 )
 
 const Major = "1"
-const Minor = "2"
-const Fix = "1"
-const Verbal = "TBB Training Ledger - HTTPS"
+const Minor = "3"
+const Fix = "0"
+const Verbal = "TX Gas"
 
 // Configured via -ldflags during build
 var GitCommit string
