@@ -88,7 +88,7 @@ func (s *State) Persist() (Snapshot, error) {
 	copy(mempool, s.txMempool)
 
 	for i := 0; i < len(mempool); i++ {
-		txJson, err := json.Marshal(s.txMempool[i])
+		txJson, err := json.Marshal(mempool[i])
 		if err != nil {
 			return Snapshot{}, err
 		}
@@ -105,7 +105,7 @@ func (s *State) Persist() (Snapshot, error) {
 		}
 		fmt.Printf("New DB Snapshot: %x\n", s.snapshot)
 
-		s.txMempool = append(s.txMempool[:i], s.txMempool[i+1:]...)
+		s.txMempool = s.txMempool[1:]
 	}
 
 	return s.snapshot, nil
