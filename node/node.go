@@ -19,11 +19,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/caddyserver/certmagic"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/web3coach/the-blockchain-bar/database"
 	"net/http"
 	"time"
+
+	"github.com/caddyserver/certmagic"
+	"github.com/ethereum/go-ethereum/common"
+
+	"github.com/web3coach/the-blockchain-bar/database"
 )
 
 const DefaultBootstrapIp = "node.tbb.web3.coach"
@@ -71,7 +73,12 @@ type Node struct {
 	dataDir string
 	info    PeerNode
 
-	state           *database.State
+	// The main blockchain state after all TXs from mined blocks were applied
+	state *database.State
+
+	// temporary pending state validating new incoming TXs but reset after the block is mined
+	pendingState *database.State
+
 	knownPeers      map[string]PeerNode
 	pendingTXs      map[string]database.SignedTx
 	archivedTXs     map[string]database.SignedTx
@@ -114,6 +121,9 @@ func (n *Node) Run(ctx context.Context, isSSLDisabled bool, sslEmail string) err
 
 	n.state = state
 
+	pendingState := state.Copy()
+	n.pendingState = &pendingState
+
 	fmt.Println("Blockchain state:")
 	fmt.Printf("	- height: %d\n", n.state.LatestBlock().Header.Number)
 	fmt.Printf("	- hash: %s\n", n.state.LatestBlockHash().Hex())
@@ -122,6 +132,10 @@ func (n *Node) Run(ctx context.Context, isSSLDisabled bool, sslEmail string) err
 	go n.mine(ctx)
 
 	return n.serveHttp(ctx, isSSLDisabled, sslEmail)
+}
+
+func (n *Node) LatestBlockHash() database.Hash {
+	return n.state.LatestBlockHash()
 }
 
 func (n *Node) serveHttp(ctx context.Context, isSSLDisabled bool, sslEmail string) error {
@@ -167,10 +181,6 @@ func (n *Node) serveHttp(ctx context.Context, isSSLDisabled bool, sslEmail strin
 
 		return certmagic.HTTPS([]string{n.info.IP}, handler)
 	}
-}
-
-func (n *Node) LatestBlockHash() database.Hash {
-	return n.state.LatestBlockHash()
 }
 
 func (n *Node) mine(ctx context.Context) error {
@@ -227,7 +237,7 @@ func (n *Node) minePendingTXs(ctx context.Context) error {
 
 	n.removeMinedPendingTXs(minedBlock)
 
-	_, err = n.state.AddBlock(minedBlock)
+	err = n.addBlock(minedBlock)
 	if err != nil {
 		return err
 	}
@@ -280,6 +290,11 @@ func (n *Node) AddPendingTX(tx database.SignedTx, fromPeer PeerNode) error {
 		return err
 	}
 
+	err = n.validateTxBeforeAddingToMempool(tx)
+	if err != nil {
+		return err
+	}
+
 	_, isAlreadyPending := n.pendingTXs[txHash.Hex()]
 	_, isArchived := n.archivedTXs[txHash.Hex()]
 
@@ -290,6 +305,27 @@ func (n *Node) AddPendingTX(tx database.SignedTx, fromPeer PeerNode) error {
 	}
 
 	return nil
+}
+
+// addBlock is a wrapper around the n.state.AddBlock() to have a single function for changing the main state
+// from the Node perspective, so we can also reset the pending state in the same time.
+func (n *Node) addBlock(block database.Block) error {
+	_, err := n.state.AddBlock(block)
+	if err != nil {
+		return err
+	}
+
+	// Reset the pending state
+	pendingState := n.state.Copy()
+	n.pendingState = &pendingState
+
+	return nil
+}
+
+// validateTxBeforeAddingToMempool ensures the TX is authentic, with correct nonce, and the sender has sufficient
+// funds so we waste PoW resources on TX we can tell in advance are wrong.
+func (n *Node) validateTxBeforeAddingToMempool(tx database.SignedTx) error {
+	return database.ApplyTx(tx, n.pendingState)
 }
 
 func (n *Node) getPendingTXsAsArray() []database.SignedTx {
