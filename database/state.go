@@ -269,10 +269,5 @@ func ValidateTx(tx SignedTx, s *State) error {
 		return fmt.Errorf("wrong TX. Sender '%s' balance is %d TBB. Tx cost is %d TBB", tx.From.String(), s.Balances[tx.From], tx.Cost())
 	}
 
-	s.Balances[tx.From] -= tx.Value
-	s.Balances[tx.To] += tx.Value
-
-	s.Account2Nonce[tx.From] = tx.Nonce
-
 	return nil
 }
