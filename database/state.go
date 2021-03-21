@@ -71,7 +71,7 @@ func (s *State) Persist() error {
 	copy(mempool, s.txMempool)
 
 	for i := 0; i < len(mempool); i++ {
-		txJson, err := json.Marshal(s.txMempool[i])
+		txJson, err := json.Marshal(mempool[i])
 		if err != nil {
 			return err
 		}
@@ -79,8 +79,7 @@ func (s *State) Persist() error {
 		if _, err = s.dbFile.Write(append(txJson, '\n')); err != nil {
 			return err
 		}
-
-		s.txMempool = append(s.txMempool[:i], s.txMempool[i+1:]...)
+		s.txMempool = s.txMempool[1:]
 	}
 
 	return nil
