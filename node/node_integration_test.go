@@ -18,16 +18,18 @@ package node
 import (
 	"context"
 	"encoding/json"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/web3coach/the-blockchain-bar/database"
-	"github.com/web3coach/the-blockchain-bar/fs"
-	"github.com/web3coach/the-blockchain-bar/wallet"
 	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/ethereum/go-ethereum/common"
+
+	"github.com/web3coach/the-blockchain-bar/database"
+	"github.com/web3coach/the-blockchain-bar/fs"
+	"github.com/web3coach/the-blockchain-bar/wallet"
 )
 
 // The password for testing keystore files:
@@ -109,10 +111,30 @@ func TestNode_Mining(t *testing.T) {
 		_ = n.AddPendingTX(signedTx, nInfo)
 	}()
 
+	// Schedule a TX with insufficient funds in 4 seconds validating
+	// the AddPendingTX won't add it to the Mempool
+	go func() {
+		time.Sleep(time.Second*(miningIntervalSeconds/3) + 1)
+
+		tx := database.NewTx(babaYaga, andrej, 50, 1, "")
+		signedTx, err := wallet.SignTxWithKeystoreAccount(tx, babaYaga, testKsAccountsPwd, wallet.GetKeystoreDirPath(dataDir))
+		if err != nil {
+			t.Error(err)
+			return
+		}
+
+		err = n.AddPendingTX(signedTx, nInfo)
+		t.Log(err)
+		if err == nil {
+			t.Errorf("TX should not be added to Mempool because BabaYaga doesn't have %d TBB tokens", tx.Value)
+			return
+		}
+	}()
+
 	// Schedule a new TX in 12 seconds from now simulating
 	// that it came in - while the first TX is being mined
 	go func() {
-		time.Sleep(time.Second*miningIntervalSeconds + 2)
+		time.Sleep(time.Second * (miningIntervalSeconds + 2))
 
 		tx := database.NewTx(andrej, babaYaga, 2, 2, "")
 		signedTx, err := wallet.SignTxWithKeystoreAccount(tx, andrej, testKsAccountsPwd, wallet.GetKeystoreDirPath(dataDir))
@@ -121,7 +143,11 @@ func TestNode_Mining(t *testing.T) {
 			return
 		}
 
-		_ = n.AddPendingTX(signedTx, nInfo)
+		err = n.AddPendingTX(signedTx, nInfo)
+		if err != nil {
+			t.Error(err)
+			return
+		}
 	}()
 
 	go func() {
@@ -143,7 +169,7 @@ func TestNode_Mining(t *testing.T) {
 	_ = n.Run(ctx, true, "")
 
 	if n.state.LatestBlock().Header.Number != 1 {
-		t.Fatal("2 pending TX not mined into 2 under 30m")
+		t.Fatal("2 pending TX not mined into 2 blocks under 30m")
 	}
 }
 
@@ -170,10 +196,21 @@ func TestNode_ForgedTx(t *testing.T) {
 	validSignedTx, err := wallet.SignTxWithKeystoreAccount(tx, andrej, testKsAccountsPwd, wallet.GetKeystoreDirPath(dataDir))
 	if err != nil {
 		t.Error(err)
+		closeNode()
 		return
 	}
 
-	_ = n.AddPendingTX(validSignedTx, andrejPeerNode)
+	go func() {
+		// Wait for the node to run
+		time.Sleep(time.Second * 1)
+
+		err = n.AddPendingTX(validSignedTx, andrejPeerNode)
+		if err != nil {
+			t.Error(err)
+			closeNode()
+			return
+		}
+	}()
 
 	go func() {
 		ticker := time.NewTicker(time.Second * (miningIntervalSeconds - 3))
@@ -196,7 +233,14 @@ func TestNode_ForgedTx(t *testing.T) {
 						// Use the signature from a valid TX
 						forgedSignedTx := database.NewSignedTx(forgedTx, validSignedTx.Sig)
 
-						_ = n.AddPendingTX(forgedSignedTx, andrejPeerNode)
+						err = n.AddPendingTX(forgedSignedTx, andrejPeerNode)
+						t.Log(err)
+						if err == nil {
+							t.Errorf("adding a forged TX to the Mempool should not be possible")
+							closeNode()
+							return
+						}
+
 						wasForgedTxAdded = true
 
 						time.Sleep(time.Second * (miningIntervalSeconds + 3))
@@ -241,10 +285,21 @@ func TestNode_ReplayedTx(t *testing.T) {
 	signedTx, err := wallet.SignTxWithKeystoreAccount(tx, andrej, testKsAccountsPwd, wallet.GetKeystoreDirPath(dataDir))
 	if err != nil {
 		t.Error(err)
+		closeNode()
 		return
 	}
 
-	_ = n.AddPendingTX(signedTx, andrejPeerNode)
+	go func() {
+		// Wait for the node to run
+		time.Sleep(time.Second * 1)
+
+		err = n.AddPendingTX(signedTx, andrejPeerNode)
+		if err != nil {
+			t.Error(err)
+			closeNode()
+			return
+		}
+	}()
 
 	go func() {
 		ticker := time.NewTicker(time.Second * (miningIntervalSeconds - 3))
@@ -265,7 +320,14 @@ func TestNode_ReplayedTx(t *testing.T) {
 						// Simulate the TX was submitted to different node
 						n.archivedTXs = make(map[string]database.SignedTx)
 						// Execute the attack
-						_ = n.AddPendingTX(signedTx, babaYagaPeerNode)
+						err = n.AddPendingTX(signedTx, babaYagaPeerNode)
+						t.Log(err)
+						if err == nil {
+							t.Errorf("re-adding a TX to the Mempool should not be possible because of Nonce")
+							closeNode()
+							return
+						}
+
 						wasReplayedTxAdded = true
 
 						time.Sleep(time.Second * (miningIntervalSeconds + 3))

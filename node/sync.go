@@ -118,7 +118,7 @@ func (n *Node) syncBlocks(peer PeerNode, status StatusRes) error {
 	}
 
 	for _, block := range blocks {
-		_, err = n.state.AddBlock(block)
+		err = n.addBlock(block)
 		if err != nil {
 			return err
 		}
