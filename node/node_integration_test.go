@@ -566,23 +566,28 @@ func TestNode_MiningSpamTransactions(t *testing.T) {
 	minerPeerNode := NewPeerNode("127.0.0.1", 8085, false, miner, true)
 
 	txValue := uint(200)
-
-	// Schedule 4 transfers from Andrej -> BabaYaga
 	txCount := uint(4)
-	for i := uint(1); i <= txCount; i++ {
-		// Ensure every TX has a unique timestamp
+
+	go func() {
+		// Wait for the node to run and initialize its state and other components
 		time.Sleep(time.Second)
 
-		txNonce := i
-		tx := database.NewTx(andrej, babaYaga, txValue, txNonce, "")
+		// Schedule 4 transfers from Andrej -> BabaYaga
+		for i := uint(1); i <= txCount; i++ {
+			// Ensure every TX has a unique timestamp
+			time.Sleep(time.Second)
 
-		signedTx, err := wallet.SignTxWithKeystoreAccount(tx, andrej, testKsAccountsPwd, wallet.GetKeystoreDirPath(dataDir))
-		if err != nil {
-			t.Fatal(err)
+			txNonce := i
+			tx := database.NewTx(andrej, babaYaga, txValue, txNonce, "")
+
+			signedTx, err := wallet.SignTxWithKeystoreAccount(tx, andrej, testKsAccountsPwd, wallet.GetKeystoreDirPath(dataDir))
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			_ = n.AddPendingTX(signedTx, minerPeerNode)
 		}
-
-		_ = n.AddPendingTX(signedTx, minerPeerNode)
-	}
+	}()
 
 	go func() {
 		// Periodically check if we mined the block
