@@ -52,6 +52,7 @@ type StatusRes struct {
 	KnownPeers  map[string]PeerNode `json:"peers_known"`
 	PendingTXs  []database.SignedTx `json:"pending_txs"`
 	NodeVersion string              `json:"node_version"`
+	Account     common.Address      `json:"account"`
 }
 
 type SyncRes struct {
@@ -116,6 +117,7 @@ func statusHandler(w http.ResponseWriter, r *http.Request, node *Node) {
 		KnownPeers:  node.knownPeers,
 		PendingTXs:  node.getPendingTXsAsArray(),
 		NodeVersion: node.nodeVersion,
+		Account:     database.NewAccount(node.info.Account.String()),
 	}
 
 	writeRes(w, res)
