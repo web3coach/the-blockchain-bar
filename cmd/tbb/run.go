@@ -18,10 +18,11 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
+
 	"github.com/spf13/cobra"
 	"github.com/web3coach/the-blockchain-bar/database"
 	"github.com/web3coach/the-blockchain-bar/node"
-	"os"
 )
 
 func runCmd() *cobra.Command {
@@ -46,13 +47,15 @@ func runCmd() *cobra.Command {
 				true,
 				database.NewAccount(bootstrapAcc),
 				false,
+				"",
 			)
 
 			if !isSSLDisabled {
 				port = node.HttpSSLPort
 			}
 
-			n := node.New(getDataDirFromCmd(cmd), ip, port, database.NewAccount(miner), bootstrap)
+			version := fmt.Sprintf("%s.%s.%s-alpha %s %s", Major, Minor, Fix, shortGitCommit(GitCommit), Verbal)
+			n := node.New(getDataDirFromCmd(cmd), ip, port, database.NewAccount(miner), bootstrap, version)
 			err := n.Run(context.Background(), isSSLDisabled, sslEmail)
 			if err != nil {
 				fmt.Println(err)

@@ -44,6 +44,7 @@ const endpointAddPeer = "/node/peer"
 const endpointAddPeerQueryKeyIP = "ip"
 const endpointAddPeerQueryKeyPort = "port"
 const endpointAddPeerQueryKeyMiner = "miner"
+const endpointAddPeerQueryKeyVersion = "version"
 
 const miningIntervalSeconds = 10
 
@@ -52,6 +53,7 @@ type PeerNode struct {
 	Port        uint64         `json:"port"`
 	IsBootstrap bool           `json:"is_bootstrap"`
 	Account     common.Address `json:"account"`
+	NodeVersion string         `json:"node_version"`
 
 	// Whenever my node already established connection, sync with this Peer
 	connected bool
@@ -85,20 +87,22 @@ type Node struct {
 	newSyncedBlocks chan database.Block
 	newPendingTXs   chan database.SignedTx
 	isMining        bool
+	nodeVersion     string
 }
 
-func New(dataDir string, ip string, port uint64, acc common.Address, bootstrap PeerNode) *Node {
+func New(dataDir string, ip string, port uint64, acc common.Address, bootstrap PeerNode, version string) *Node {
 	knownPeers := make(map[string]PeerNode)
 
 	n := &Node{
 		dataDir:         dataDir,
-		info:            NewPeerNode(ip, port, false, acc, true),
+		info:            NewPeerNode(ip, port, false, acc, true, version),
 		knownPeers:      knownPeers,
 		pendingTXs:      make(map[string]database.SignedTx),
 		archivedTXs:     make(map[string]database.SignedTx),
 		newSyncedBlocks: make(chan database.Block),
 		newPendingTXs:   make(chan database.SignedTx, 10000),
 		isMining:        false,
+		nodeVersion:     version,
 	}
 
 	n.AddPeer(bootstrap)
@@ -106,8 +110,8 @@ func New(dataDir string, ip string, port uint64, acc common.Address, bootstrap P
 	return n
 }
 
-func NewPeerNode(ip string, port uint64, isBootstrap bool, acc common.Address, connected bool) PeerNode {
-	return PeerNode{ip, port, isBootstrap, acc, connected}
+func NewPeerNode(ip string, port uint64, isBootstrap bool, acc common.Address, connected bool, version string) PeerNode {
+	return PeerNode{ip, port, isBootstrap, acc, version, connected}
 }
 
 func (n *Node) Run(ctx context.Context, isSSLDisabled bool, sslEmail string) error {
