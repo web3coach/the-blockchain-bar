@@ -49,6 +49,7 @@ const testKsBabaYagaAccount = "0x6fdc0d8d15ae6b4ebf45c52fd2aafbcbb19a65c8"
 const testKsAndrejFile = "test_andrej--3eb92807f1f91a8d4d85bc908c7f86dcddb1df57"
 const testKsBabaYagaFile = "test_babayaga--6fdc0d8d15ae6b4ebf45c52fd2aafbcbb19a65c8"
 const testKsAccountsPwd = "security123"
+const nodeVersion = "0.0.0-alpha 01abcd Test Run"
 
 func TestNode_Run(t *testing.T) {
 	datadir, err := getTestDataDirPath()
@@ -60,7 +61,7 @@ func TestNode_Run(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	n := New(datadir, "127.0.0.1", 8085, database.NewAccount(DefaultMiner), PeerNode{})
+	n := New(datadir, "127.0.0.1", 8085, database.NewAccount(DefaultMiner), PeerNode{}, nodeVersion)
 
 	ctx, _ := context.WithTimeout(context.Background(), time.Second*5)
 	err = n.Run(ctx, true, "")
@@ -84,11 +85,12 @@ func TestNode_Mining(t *testing.T) {
 		false,
 		babaYaga,
 		true,
+		nodeVersion,
 	)
 
 	// Construct a new Node instance and configure
 	// Andrej as a miner
-	n := New(dataDir, nInfo.IP, nInfo.Port, andrej, nInfo)
+	n := New(dataDir, nInfo.IP, nInfo.Port, andrej, nInfo, nodeVersion)
 
 	// Allow the mining to run for 30 mins, in the worst case
 	ctx, closeNode := context.WithTimeout(
@@ -185,9 +187,9 @@ func TestNode_ForgedTx(t *testing.T) {
 	}
 	defer fs.RemoveDir(dataDir)
 
-	n := New(dataDir, "127.0.0.1", 8085, andrej, PeerNode{})
+	n := New(dataDir, "127.0.0.1", 8085, andrej, PeerNode{}, nodeVersion)
 	ctx, closeNode := context.WithTimeout(context.Background(), time.Minute*30)
-	andrejPeerNode := NewPeerNode("127.0.0.1", 8085, false, andrej, true)
+	andrejPeerNode := NewPeerNode("127.0.0.1", 8085, false, andrej, true, nodeVersion)
 
 	txValue := uint(5)
 	txNonce := uint(1)
@@ -273,10 +275,10 @@ func TestNode_ReplayedTx(t *testing.T) {
 	}
 	defer fs.RemoveDir(dataDir)
 
-	n := New(dataDir, "127.0.0.1", 8085, andrej, PeerNode{})
+	n := New(dataDir, "127.0.0.1", 8085, andrej, PeerNode{}, nodeVersion)
 	ctx, closeNode := context.WithCancel(context.Background())
-	andrejPeerNode := NewPeerNode("127.0.0.1", 8085, false, andrej, true)
-	babaYagaPeerNode := NewPeerNode("127.0.0.1", 8086, false, babaYaga, true)
+	andrejPeerNode := NewPeerNode("127.0.0.1", 8085, false, andrej, true, nodeVersion)
+	babaYagaPeerNode := NewPeerNode("127.0.0.1", 8086, false, babaYaga, true, nodeVersion)
 
 	txValue := uint(5)
 	txNonce := uint(1)
@@ -396,9 +398,10 @@ func TestNode_MiningStopsOnNewSyncedBlock(t *testing.T) {
 		false,
 		database.NewAccount(""),
 		true,
+		nodeVersion,
 	)
 
-	n := New(dataDir, nInfo.IP, nInfo.Port, babaYaga, nInfo)
+	n := New(dataDir, nInfo.IP, nInfo.Port, babaYaga, nInfo, nodeVersion)
 
 	// Allow the test to run for 30 mins, in the worst case
 	ctx, closeNode := context.WithTimeout(context.Background(), time.Minute*30)
@@ -561,9 +564,9 @@ func TestNode_MiningSpamTransactions(t *testing.T) {
 	}
 	defer fs.RemoveDir(dataDir)
 
-	n := New(dataDir, "127.0.0.1", 8085, miner, PeerNode{})
+	n := New(dataDir, "127.0.0.1", 8085, miner, PeerNode{}, nodeVersion)
 	ctx, closeNode := context.WithCancel(context.Background())
-	minerPeerNode := NewPeerNode("127.0.0.1", 8085, false, miner, true)
+	minerPeerNode := NewPeerNode("127.0.0.1", 8085, false, miner, true, nodeVersion)
 
 	txValue := uint(200)
 	txCount := uint(4)

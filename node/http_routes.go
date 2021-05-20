@@ -17,11 +17,12 @@ package node
 
 import (
 	"fmt"
+	"net/http"
+	"strconv"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/web3coach/the-blockchain-bar/database"
 	"github.com/web3coach/the-blockchain-bar/wallet"
-	"net/http"
-	"strconv"
 )
 
 type ErrRes struct {
@@ -46,10 +47,11 @@ type TxAddRes struct {
 }
 
 type StatusRes struct {
-	Hash       database.Hash       `json:"block_hash"`
-	Number     uint64              `json:"block_number"`
-	KnownPeers map[string]PeerNode `json:"peers_known"`
-	PendingTXs []database.SignedTx `json:"pending_txs"`
+	Hash        database.Hash       `json:"block_hash"`
+	Number      uint64              `json:"block_number"`
+	KnownPeers  map[string]PeerNode `json:"peers_known"`
+	PendingTXs  []database.SignedTx `json:"pending_txs"`
+	NodeVersion string              `json:"node_version"`
 }
 
 type SyncRes struct {
@@ -109,10 +111,11 @@ func statusHandler(w http.ResponseWriter, r *http.Request, node *Node) {
 	enableCors(&w)
 
 	res := StatusRes{
-		Hash:       node.state.LatestBlockHash(),
-		Number:     node.state.LatestBlock().Header.Number,
-		KnownPeers: node.knownPeers,
-		PendingTXs: node.getPendingTXsAsArray(),
+		Hash:        node.state.LatestBlockHash(),
+		Number:      node.state.LatestBlock().Header.Number,
+		KnownPeers:  node.knownPeers,
+		PendingTXs:  node.getPendingTXsAsArray(),
+		NodeVersion: node.nodeVersion,
 	}
 
 	writeRes(w, res)
@@ -141,6 +144,7 @@ func addPeerHandler(w http.ResponseWriter, r *http.Request, node *Node) {
 	peerIP := r.URL.Query().Get(endpointAddPeerQueryKeyIP)
 	peerPortRaw := r.URL.Query().Get(endpointAddPeerQueryKeyPort)
 	minerRaw := r.URL.Query().Get(endpointAddPeerQueryKeyMiner)
+	versionRaw := r.URL.Query().Get(endpointAddPeerQueryKeyVersion)
 
 	peerPort, err := strconv.ParseUint(peerPortRaw, 10, 32)
 	if err != nil {
@@ -148,7 +152,7 @@ func addPeerHandler(w http.ResponseWriter, r *http.Request, node *Node) {
 		return
 	}
 
-	peer := NewPeerNode(peerIP, peerPort, false, database.NewAccount(minerRaw), true)
+	peer := NewPeerNode(peerIP, peerPort, false, database.NewAccount(minerRaw), true, versionRaw)
 
 	node.AddPeer(peer)
 
