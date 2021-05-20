@@ -19,6 +19,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/web3coach/the-blockchain-bar/database"
@@ -158,7 +159,7 @@ func (n *Node) joinKnownPeers(peer PeerNode) error {
 		return nil
 	}
 
-	url := fmt.Sprintf(
+	p_url := fmt.Sprintf(
 		"%s://%s%s?%s=%s&%s=%d&%s=%s&%s=%s",
 		peer.ApiProtocol(),
 		peer.TcpAddress(),
@@ -168,12 +169,12 @@ func (n *Node) joinKnownPeers(peer PeerNode) error {
 		endpointAddPeerQueryKeyPort,
 		n.info.Port,
 		endpointAddPeerQueryKeyMiner,
-		n.info.Account,
+		n.info.Account.String(),
 		endpointAddPeerQueryKeyVersion,
-		n.nodeVersion,
+		url.QueryEscape(n.info.NodeVersion),
 	)
 
-	res, err := http.Get(url)
+	res, err := http.Get(p_url)
 	if err != nil {
 		return err
 	}
