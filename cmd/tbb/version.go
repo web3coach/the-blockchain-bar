@@ -17,12 +17,13 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/spf13/cobra"
 )
 
 const Major = "1"
 const Minor = "3"
-const Fix = "1"
+const Fix = "2"
 const Verbal = "TX Gas"
 
 // Configured via -ldflags during build
