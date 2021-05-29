@@ -83,7 +83,7 @@ Together with all students, we will use this custom build blockchain for educati
 ##### Download
 ###### Linux
 ```bash
-wget "https://github.com/web3coach/the-blockchain-bar/releases/download/1.3.1-alpha/tbb-linux-amd64" -O /usr/local/bin/tbb
+wget "https://github.com/web3coach/the-blockchain-bar/releases/download/1.3.2-alpha/tbb-linux-amd64" -O /usr/local/bin/tbb
 ```
 
 ##### Verify the version
@@ -91,7 +91,7 @@ wget "https://github.com/web3coach/the-blockchain-bar/releases/download/1.3.1-al
 chmod a+x /usr/local/bin/tbb
 tbb version
 
-> Version: 1.2.1-alpha TBB Training Ledger - HTTPS
+> Version: 1.3.2-alpha 564d63 TX Ga
 ```
 
 ### 3/4 Connect to the training network from localhost
@@ -265,11 +265,11 @@ Flags:
 ```
 
 ### Run a TBB node connected to the official book's test network 
-If you are running the node on your localhost, just disable the SSL with `--disable-ssl` flag.
+If you are running the node on your localhost, disable the SSL with `--disable-ssl` flag.
 
 ```
 tbb version
-> Version: 1.2.1-alpha TBB Training Ledger - HTTPS
+> Version: 1.3.2-alpha 564d63 TX Ga
 
 tbb run --datadir=$HOME/.tbb --ip=127.0.0.1 --port=8081 --miner=0x_YOUR_WALLET_ACCOUNT --disable-ssl
 ```
