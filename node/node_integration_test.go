@@ -571,13 +571,13 @@ func TestNode_MiningSpamTransactions(t *testing.T) {
 		// Wait for the node to run and initialize its state and other components
 		time.Sleep(time.Second)
 
+		now := uint64(time.Now().Unix())
 		// Schedule 4 transfers from Andrej -> BabaYaga
 		for i := uint(1); i <= txCount; i++ {
-			// Ensure every TX has a unique timestamp
-			time.Sleep(time.Second)
-
 			txNonce := i
 			tx := database.NewTx(andrej, babaYaga, txValue, txNonce, "")
+			// Ensure every TX has a unique timestamp and the nonce 0 has oldest timestamp, nonce 1 younger timestamp etc
+			tx.Time = now - uint64(txCount-i*100)
 
 			signedTx, err := wallet.SignTxWithKeystoreAccount(tx, andrej, testKsAccountsPwd, wallet.GetKeystoreDirPath(dataDir))
 			if err != nil {
