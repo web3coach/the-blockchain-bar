@@ -55,7 +55,7 @@ func runCmd() *cobra.Command {
 			}
 
 			version := fmt.Sprintf("%s.%s.%s-alpha %s %s", Major, Minor, Fix, shortGitCommit(GitCommit), Verbal)
-			n := node.New(getDataDirFromCmd(cmd), ip, port, database.NewAccount(miner), bootstrap, version)
+			n := node.New(getDataDirFromCmd(cmd), ip, port, database.NewAccount(miner), bootstrap, version, node.DefaultMiningDifficulty)
 			err := n.Run(context.Background(), isSSLDisabled, sslEmail)
 			if err != nil {
 				fmt.Println(err)

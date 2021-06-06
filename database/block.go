@@ -21,6 +21,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -78,9 +79,18 @@ func (b Block) Hash() (Hash, error) {
 	return sha256.Sum256(blockJson), nil
 }
 
-func IsBlockHashValid(hash Hash) bool {
-	return fmt.Sprintf("%x", hash[0]) == "0" &&
-		fmt.Sprintf("%x", hash[1]) == "0" &&
-		fmt.Sprintf("%x", hash[2]) == "0" &&
-		fmt.Sprintf("%x", hash[3]) != "0"
+func IsBlockHashValid(hash Hash, miningDifficulty uint) bool {
+	zeroesCount := uint(0)
+
+	for i := uint(0); i < miningDifficulty; i++ {
+		if fmt.Sprintf("%x", hash[i]) == "0" {
+			zeroesCount++
+		}
+	}
+
+	if fmt.Sprintf("%x", hash[miningDifficulty]) == "0" {
+		return false
+	}
+
+	return zeroesCount == miningDifficulty
 }

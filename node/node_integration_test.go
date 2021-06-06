@@ -61,7 +61,7 @@ func TestNode_Run(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	n := New(datadir, "127.0.0.1", 8085, database.NewAccount(DefaultMiner), PeerNode{}, nodeVersion)
+	n := New(datadir, "127.0.0.1", 8085, database.NewAccount(DefaultMiner), PeerNode{}, nodeVersion, defaultTestMiningDifficulty)
 
 	ctx, _ := context.WithTimeout(context.Background(), time.Second*5)
 	err = n.Run(ctx, true, "")
@@ -90,7 +90,7 @@ func TestNode_Mining(t *testing.T) {
 
 	// Construct a new Node instance and configure
 	// Andrej as a miner
-	n := New(dataDir, nInfo.IP, nInfo.Port, andrej, nInfo, nodeVersion)
+	n := New(dataDir, nInfo.IP, nInfo.Port, andrej, nInfo, nodeVersion, defaultTestMiningDifficulty)
 
 	// Allow the mining to run for 30 mins, in the worst case
 	ctx, closeNode := context.WithTimeout(
@@ -187,7 +187,7 @@ func TestNode_ForgedTx(t *testing.T) {
 	}
 	defer fs.RemoveDir(dataDir)
 
-	n := New(dataDir, "127.0.0.1", 8085, andrej, PeerNode{}, nodeVersion)
+	n := New(dataDir, "127.0.0.1", 8085, andrej, PeerNode{}, nodeVersion, defaultTestMiningDifficulty)
 	ctx, closeNode := context.WithTimeout(context.Background(), time.Minute*30)
 	andrejPeerNode := NewPeerNode("127.0.0.1", 8085, false, andrej, true, nodeVersion)
 
@@ -275,7 +275,7 @@ func TestNode_ReplayedTx(t *testing.T) {
 	}
 	defer fs.RemoveDir(dataDir)
 
-	n := New(dataDir, "127.0.0.1", 8085, andrej, PeerNode{}, nodeVersion)
+	n := New(dataDir, "127.0.0.1", 8085, andrej, PeerNode{}, nodeVersion, defaultTestMiningDifficulty)
 	ctx, closeNode := context.WithCancel(context.Background())
 	andrejPeerNode := NewPeerNode("127.0.0.1", 8085, false, andrej, true, nodeVersion)
 	babaYagaPeerNode := NewPeerNode("127.0.0.1", 8086, false, babaYaga, true, nodeVersion)
@@ -401,7 +401,8 @@ func TestNode_MiningStopsOnNewSyncedBlock(t *testing.T) {
 		nodeVersion,
 	)
 
-	n := New(dataDir, nInfo.IP, nInfo.Port, babaYaga, nInfo, nodeVersion)
+	// Start mining with a high mining difficulty, just to be slow on purpose and let a synced block arrive first
+	n := New(dataDir, nInfo.IP, nInfo.Port, babaYaga, nInfo, nodeVersion, uint(5))
 
 	// Allow the test to run for 30 mins, in the worst case
 	ctx, closeNode := context.WithTimeout(context.Background(), time.Minute*30)
@@ -430,7 +431,7 @@ func TestNode_MiningStopsOnNewSyncedBlock(t *testing.T) {
 	// with Andrej as a miner who will receive the block reward,
 	// to simulate the block came on the fly from another peer
 	validPreMinedPb := NewPendingBlock(database.Hash{}, 0, andrej, []database.SignedTx{signedTx1})
-	validSyncedBlock, err := Mine(ctx, validPreMinedPb)
+	validSyncedBlock, err := Mine(ctx, validPreMinedPb, defaultTestMiningDifficulty)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -450,9 +451,6 @@ func TestNode_MiningStopsOnNewSyncedBlock(t *testing.T) {
 		}
 	}()
 
-	// TODO: Fix a race condition when the block gets mined
-	//       before the validBlock gets synced.
-	//
 	// Interrupt the previously started mining with a new synced block
 	// BUT this block contains only 1 TX the previous mining activity tried to mine
 	// which means the mining will start again for the one pending TX that is left and wasn't in
@@ -463,6 +461,9 @@ func TestNode_MiningStopsOnNewSyncedBlock(t *testing.T) {
 			t.Fatal("should be mining")
 		}
 
+		// Change the mining difficulty back to the testing level from previously purposefully slow, high value
+		// otherwise the synced block would be invalid.
+		n.ChangeMiningDifficulty(defaultTestMiningDifficulty)
 		_, err := n.state.AddBlock(validSyncedBlock)
 		if err != nil {
 			t.Fatal(err)
@@ -470,7 +471,7 @@ func TestNode_MiningStopsOnNewSyncedBlock(t *testing.T) {
 		// Mock the Andrej's block came from a network
 		n.newSyncedBlocks <- validSyncedBlock
 
-		time.Sleep(time.Second * 2)
+		time.Sleep(time.Second)
 		if n.isMining {
 			t.Fatal("synced block should have canceled mining")
 		}
@@ -480,11 +481,6 @@ func TestNode_MiningStopsOnNewSyncedBlock(t *testing.T) {
 
 		if len(n.pendingTXs) != 1 && !onlyTX2IsPending {
 			t.Fatal("synced block should have canceled mining of already mined TX")
-		}
-
-		time.Sleep(time.Second * (miningIntervalSeconds + 2))
-		if !n.isMining {
-			t.Fatal("should be mining again the 1 TX not included in synced block")
 		}
 	}()
 
@@ -564,7 +560,7 @@ func TestNode_MiningSpamTransactions(t *testing.T) {
 	}
 	defer fs.RemoveDir(dataDir)
 
-	n := New(dataDir, "127.0.0.1", 8085, miner, PeerNode{}, nodeVersion)
+	n := New(dataDir, "127.0.0.1", 8085, miner, PeerNode{}, nodeVersion, defaultTestMiningDifficulty)
 	ctx, closeNode := context.WithCancel(context.Background())
 	minerPeerNode := NewPeerNode("127.0.0.1", 8085, false, miner, true, nodeVersion)
 
