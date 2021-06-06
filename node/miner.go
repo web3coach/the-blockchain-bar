@@ -23,7 +23,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/web3coach/the-blockchain-bar/database"
-	"github.com/web3coach/the-blockchain-bar/fs"
 )
 
 type PendingBlock struct {
@@ -74,7 +73,7 @@ func Mine(ctx context.Context, pb PendingBlock, miningDifficulty uint) (database
 		hash = blockHash
 	}
 
-	fmt.Printf("\nMined new Block '%x' using PoW🎉🎉🎉%s:\n", hash, fs.Unicode("\\U1F389"))
+	fmt.Printf("\nMined new Block '%x' using PoW 🎉🎉🎉\n", hash)
 	fmt.Printf("\tHeight: '%v'\n", block.Header.Number)
 	fmt.Printf("\tNonce: '%v'\n", block.Header.Nonce)
 	fmt.Printf("\tCreated: '%v'\n", block.Header.Time)

@@ -7,8 +7,7 @@ require (
 	github.com/btcsuite/btcd v0.20.1-beta // indirect
 	github.com/caddyserver/certmagic v0.11.2
 	github.com/davecgh/go-spew v1.1.1
-	github.com/elastic/gosigar v0.10.5 // indirect
-	github.com/ethereum/go-ethereum v1.9.10
+	github.com/ethereum/go-ethereum v1.9.25
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/pborman/uuid v0.0.0-20170112150404-1b00554d8222
 	github.com/spf13/cobra v0.0.3

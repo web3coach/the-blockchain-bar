@@ -17,14 +17,14 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
+
 	"github.com/davecgh/go-spew/spew"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/cmd/utils"
-	"github.com/ethereum/go-ethereum/console"
 	"github.com/spf13/cobra"
 	"github.com/web3coach/the-blockchain-bar/wallet"
-	"io/ioutil"
-	"os"
 )
 
 func walletCmd() *cobra.Command {
@@ -98,20 +98,5 @@ func walletPrintPrivKeyCmd() *cobra.Command {
 }
 
 func getPassPhrase(prompt string, confirmation bool) string {
-	password, err := console.Stdin.PromptPassword(prompt)
-	if err != nil {
-		utils.Fatalf("Failed to read password: %v", err)
-	}
-
-	if confirmation {
-		confirm, err := console.Stdin.PromptPassword("Repeat password: ")
-		if err != nil {
-			utils.Fatalf("Failed to read password confirmation: %v", err)
-		}
-		if password != confirm {
-			utils.Fatalf("Passwords do not match")
-		}
-	}
-
-	return password
+	return utils.GetPassPhrase(prompt, confirmation)
 }

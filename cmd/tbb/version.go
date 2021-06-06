@@ -22,7 +22,7 @@ import (
 )
 
 const Major = "1"
-const Minor = "3"
+const Minor = "8"
 const Fix = "2"
 const Verbal = "TX Gas"
 
