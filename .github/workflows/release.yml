@@ -25,4 +25,4 @@ jobs:
           project_path: "./cmd/tbb"
           binary_name: "tbb"
           ldflags: "-s -w"
-          extra_files: LICENSE README.md
+          extra_files: LICENSE Readme.md
