@@ -571,6 +571,8 @@ func TestNode_MiningSpamTransactions(t *testing.T) {
 		// Wait for the node to run and initialize its state and other components
 		time.Sleep(time.Second)
 
+		spamTXs := make([]database.SignedTx, txCount)
+
 		now := uint64(time.Now().Unix())
 		// Schedule 4 transfers from Andrej -> BabaYaga
 		for i := uint(1); i <= txCount; i++ {
@@ -584,7 +586,13 @@ func TestNode_MiningSpamTransactions(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			_ = n.AddPendingTX(signedTx, minerPeerNode)
+			spamTXs[i-1] = signedTx
+		}
+
+		// Collect pre-signed TXs to an array to make sure all 4 fit into a block within the mining interval,
+		// otherwise slower machines can start mining after TX 3 or so, making the test fail on e.g: Github Actions.
+		for _, tx := range spamTXs {
+			_ = n.AddPendingTX(tx, minerPeerNode)
 		}
 	}()
 
