@@ -93,3 +93,6 @@ type Tx struct {
 	Time     uint64         `json:"time"`
 }
 ```
+
+## Proposed Consensus Fork Number
+TBD when I finish writing Chapter 15: Blockchain Forks - What, Why, How.
