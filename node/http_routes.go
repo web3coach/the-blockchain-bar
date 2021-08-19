@@ -35,11 +35,13 @@ type BalancesRes struct {
 }
 
 type TxAddReq struct {
-	From    string `json:"from"`
-	FromPwd string `json:"from_pwd"`
-	To      string `json:"to"`
-	Value   uint   `json:"value"`
-	Data    string `json:"data"`
+	From     string `json:"from"`
+	FromPwd  string `json:"from_pwd"`
+	To       string `json:"to"`
+	Gas      uint   `json:"gas"`
+	GasPrice uint   `json:"gas_price"`
+	Value    uint   `json:"value"`
+	Data     string `json:"data"`
 }
 
 type TxAddRes struct {
@@ -91,7 +93,7 @@ func txAddHandler(w http.ResponseWriter, r *http.Request, node *Node) {
 	}
 
 	nonce := node.state.GetNextAccountNonce(from)
-	tx := database.NewTx(from, database.NewAccount(req.To), req.Value, nonce, req.Data)
+	tx := database.NewTx(from, database.NewAccount(req.To), req.Gas, req.GasPrice, req.Value, nonce, req.Data)
 
 	signedTx, err := wallet.SignTxWithKeystoreAccount(tx, from, req.FromPwd, wallet.GetKeystoreDirPath(node.dataDir))
 	if err != nil {

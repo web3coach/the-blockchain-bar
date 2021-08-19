@@ -103,7 +103,7 @@ func TestNode_Mining(t *testing.T) {
 	go func() {
 		time.Sleep(time.Second * miningIntervalSeconds / 3)
 
-		tx := database.NewTx(andrej, babaYaga, 1, 1, "")
+		tx := database.NewBaseTx(andrej, babaYaga, 1, 1, "")
 		signedTx, err := wallet.SignTxWithKeystoreAccount(tx, andrej, testKsAccountsPwd, wallet.GetKeystoreDirPath(dataDir))
 		if err != nil {
 			t.Error(err)
@@ -118,7 +118,7 @@ func TestNode_Mining(t *testing.T) {
 	go func() {
 		time.Sleep(time.Second*(miningIntervalSeconds/3) + 1)
 
-		tx := database.NewTx(babaYaga, andrej, 50, 1, "")
+		tx := database.NewBaseTx(babaYaga, andrej, 50, 1, "")
 		signedTx, err := wallet.SignTxWithKeystoreAccount(tx, babaYaga, testKsAccountsPwd, wallet.GetKeystoreDirPath(dataDir))
 		if err != nil {
 			t.Error(err)
@@ -138,7 +138,7 @@ func TestNode_Mining(t *testing.T) {
 	go func() {
 		time.Sleep(time.Second * (miningIntervalSeconds + 2))
 
-		tx := database.NewTx(andrej, babaYaga, 2, 2, "")
+		tx := database.NewBaseTx(andrej, babaYaga, 2, 2, "")
 		signedTx, err := wallet.SignTxWithKeystoreAccount(tx, andrej, testKsAccountsPwd, wallet.GetKeystoreDirPath(dataDir))
 		if err != nil {
 			t.Error(err)
@@ -193,7 +193,7 @@ func TestNode_ForgedTx(t *testing.T) {
 
 	txValue := uint(5)
 	txNonce := uint(1)
-	tx := database.NewTx(andrej, babaYaga, txValue, txNonce, "")
+	tx := database.NewBaseTx(andrej, babaYaga, txValue, txNonce, "")
 
 	validSignedTx, err := wallet.SignTxWithKeystoreAccount(tx, andrej, testKsAccountsPwd, wallet.GetKeystoreDirPath(dataDir))
 	if err != nil {
@@ -231,7 +231,7 @@ func TestNode_ForgedTx(t *testing.T) {
 						// Attempt to forge the same TX but with modified time
 						// Because the TX.time changed, the TX.signature will be considered forged
 						// database.NewTx() changes the TX time
-						forgedTx := database.NewTx(andrej, babaYaga, txValue, txNonce, "")
+						forgedTx := database.NewBaseTx(andrej, babaYaga, txValue, txNonce, "")
 						// Use the signature from a valid TX
 						forgedSignedTx := database.NewSignedTx(forgedTx, validSignedTx.Sig)
 
@@ -282,7 +282,7 @@ func TestNode_ReplayedTx(t *testing.T) {
 
 	txValue := uint(5)
 	txNonce := uint(1)
-	tx := database.NewTx(andrej, babaYaga, txValue, txNonce, "")
+	tx := database.NewBaseTx(andrej, babaYaga, txValue, txNonce, "")
 
 	signedTx, err := wallet.SignTxWithKeystoreAccount(tx, andrej, testKsAccountsPwd, wallet.GetKeystoreDirPath(dataDir))
 	if err != nil {
@@ -407,8 +407,8 @@ func TestNode_MiningStopsOnNewSyncedBlock(t *testing.T) {
 	// Allow the test to run for 30 mins, in the worst case
 	ctx, closeNode := context.WithTimeout(context.Background(), time.Minute*30)
 
-	tx1 := database.NewTx(andrej, babaYaga, 1, 1, "")
-	tx2 := database.NewTx(andrej, babaYaga, 2, 2, "")
+	tx1 := database.NewBaseTx(andrej, babaYaga, 1, 1, "")
+	tx2 := database.NewBaseTx(andrej, babaYaga, 2, 2, "")
 
 	signedTx1, err := wallet.SignTxWithKeystoreAccount(tx1, andrej, testKsAccountsPwd, wallet.GetKeystoreDirPath(dataDir))
 	if err != nil {
@@ -577,7 +577,7 @@ func TestNode_MiningSpamTransactions(t *testing.T) {
 		// Schedule 4 transfers from Andrej -> BabaYaga
 		for i := uint(1); i <= txCount; i++ {
 			txNonce := i
-			tx := database.NewTx(andrej, babaYaga, txValue, txNonce, "")
+			tx := database.NewBaseTx(andrej, babaYaga, txValue, txNonce, "")
 			// Ensure every TX has a unique timestamp and the nonce 0 has oldest timestamp, nonce 1 younger timestamp etc
 			tx.Time = now - uint64(txCount-i*100)
 

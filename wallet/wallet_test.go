@@ -20,14 +20,15 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"fmt"
+	"io/ioutil"
+	"math/big"
+	"testing"
+
 	"github.com/davecgh/go-spew/spew"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/web3coach/the-blockchain-bar/database"
 	"github.com/web3coach/the-blockchain-bar/fs"
-	"io/ioutil"
-	"math/big"
-	"testing"
 )
 
 // The password for testing keystore files:
@@ -135,7 +136,7 @@ func TestSignTxWithKeystoreAccount(t *testing.T) {
 		return
 	}
 
-	tx := database.NewTx(andrej, babaYaga, 100, 1, "")
+	tx := database.NewBaseTx(andrej, babaYaga, 100, 1, "")
 
 	signedTx, err := SignTxWithKeystoreAccount(tx, andrej, testKeystoreAccountsPwd, GetKeystoreDirPath(tmpDir))
 	if err != nil {
@@ -173,7 +174,7 @@ func TestSignForgedTxWithKeystoreAccount(t *testing.T) {
 		return
 	}
 
-	forgedTx := database.NewTx(babaYaga, hacker, 100, 1, "")
+	forgedTx := database.NewBaseTx(babaYaga, hacker, 100, 1, "")
 
 	signedTx, err := SignTxWithKeystoreAccount(forgedTx, hacker, testKeystoreAccountsPwd, GetKeystoreDirPath(tmpDir))
 	if err != nil {

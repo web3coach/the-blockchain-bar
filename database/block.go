@@ -79,6 +79,16 @@ func (b Block) Hash() (Hash, error) {
 	return sha256.Sum256(blockJson), nil
 }
 
+func (b Block) GasReward() uint {
+	reward := uint(0)
+
+	for _, tx := range b.TXs {
+		reward += tx.GasCost()
+	}
+
+	return reward
+}
+
 func IsBlockHashValid(hash Hash, miningDifficulty uint) bool {
 	zeroesCount := uint(0)
 

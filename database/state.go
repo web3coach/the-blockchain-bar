@@ -26,6 +26,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
+const TxGas = 21
+const TxGasPriceDefault = 1
 const TxFee = uint(50)
 
 type State struct {
@@ -39,6 +41,8 @@ type State struct {
 	hasGenesisBlock bool
 
 	miningDifficulty uint
+
+	ForkTIP1 uint64
 }
 
 func NewStateFromDisk(dataDir string, miningDifficulty uint) (*State, error) {
@@ -67,7 +71,7 @@ func NewStateFromDisk(dataDir string, miningDifficulty uint) (*State, error) {
 
 	scanner := bufio.NewScanner(f)
 
-	state := &State{balances, account2nonce, f, Block{}, Hash{}, false, miningDifficulty}
+	state := &State{balances, account2nonce, f, Block{}, Hash{}, false, miningDifficulty, gen.ForkTIP1}
 
 	for scanner.Scan() {
 		if err := scanner.Err(); err != nil {
@@ -168,8 +172,12 @@ func (s *State) GetNextAccountNonce(account common.Address) uint {
 	return s.Account2Nonce[account] + 1
 }
 
-func (c *State) ChangeMiningDifficulty(newDifficulty uint) {
-	c.miningDifficulty = newDifficulty
+func (s *State) ChangeMiningDifficulty(newDifficulty uint) {
+	s.miningDifficulty = newDifficulty
+}
+
+func (s *State) IsTIP1Fork() bool {
+	return s.LatestBlock().Header.Number >= s.ForkTIP1
 }
 
 func (s *State) Copy() State {
@@ -225,7 +233,7 @@ func applyBlock(b Block, s *State) error {
 	}
 
 	s.Balances[b.Header.Miner] += BlockReward
-	s.Balances[b.Header.Miner] += uint(len(b.TXs)) * TxFee
+	s.Balances[b.Header.Miner] += b.GasReward()
 
 	return nil
 }
