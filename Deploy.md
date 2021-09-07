@@ -10,6 +10,8 @@ cd /home/ec2-user/go/src/github.com/web3coach/the-blockchain-bar
 git checkout <X>
 git pull
 make install
+sudo ln -s $GOPATH/bin/tbb /usr/local/bin/tbb
+which tbb
 tbb version
 sudo supervisorctl start tbb
 ```
