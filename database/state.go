@@ -42,7 +42,7 @@ type State struct {
 
 	miningDifficulty uint
 
-	ForkTIP1 uint64
+	forkTIP1 uint64
 }
 
 func NewStateFromDisk(dataDir string, miningDifficulty uint) (*State, error) {
@@ -177,7 +177,7 @@ func (s *State) ChangeMiningDifficulty(newDifficulty uint) {
 }
 
 func (s *State) IsTIP1Fork() bool {
-	return s.LatestBlock().Header.Number >= s.ForkTIP1
+	return s.LatestBlock().Header.Number >= s.forkTIP1
 }
 
 func (s *State) Copy() State {
@@ -188,6 +188,7 @@ func (s *State) Copy() State {
 	c.Balances = make(map[common.Address]uint)
 	c.Account2Nonce = make(map[common.Address]uint)
 	c.miningDifficulty = s.miningDifficulty
+	c.forkTIP1 = s.forkTIP1
 
 	for acc, balance := range s.Balances {
 		c.Balances[acc] = balance
@@ -233,7 +234,11 @@ func applyBlock(b Block, s *State) error {
 	}
 
 	s.Balances[b.Header.Miner] += BlockReward
-	s.Balances[b.Header.Miner] += b.GasReward()
+	if s.IsTIP1Fork() {
+		s.Balances[b.Header.Miner] += b.GasReward()
+	} else {
+		s.Balances[b.Header.Miner] += uint(len(b.TXs)) * TxFee
+	}
 
 	return nil
 }
@@ -259,7 +264,7 @@ func ApplyTx(tx SignedTx, s *State) error {
 		return err
 	}
 
-	s.Balances[tx.From] -= tx.Cost()
+	s.Balances[tx.From] -= tx.Cost(s.IsTIP1Fork())
 	s.Balances[tx.To] += tx.Value
 
 	s.Account2Nonce[tx.From] = tx.Nonce
@@ -282,8 +287,15 @@ func ValidateTx(tx SignedTx, s *State) error {
 		return fmt.Errorf("wrong TX. Sender '%s' next nonce must be '%d', not '%d'", tx.From.String(), expectedNonce, tx.Nonce)
 	}
 
-	if tx.Cost() > s.Balances[tx.From] {
-		return fmt.Errorf("wrong TX. Sender '%s' balance is %d TBB. Tx cost is %d TBB", tx.From.String(), s.Balances[tx.From], tx.Cost())
+	if s.IsTIP1Fork() {
+		// For now we only have one type, transfer TXs, so all TXs must pay 21 gas like on Ethereum (21 000)
+		if tx.Gas != TxGas {
+			return fmt.Errorf("insufficient TX gas %v. required: %v", tx.Gas, TxGas)
+		}
+	}
+
+	if tx.Cost(s.IsTIP1Fork()) > s.Balances[tx.From] {
+		return fmt.Errorf("wrong TX. Sender '%s' balance is %d TBB. Tx cost is %d TBB", tx.From.String(), s.Balances[tx.From], tx.Cost(s.IsTIP1Fork()))
 	}
 
 	return nil

@@ -22,8 +22,8 @@ import (
 )
 
 const Major = "1"
-const Minor = "8"
-const Fix = "2"
+const Minor = "9"
+const Fix = "0"
 const Verbal = "TX Gas"
 
 // Configured via -ldflags during build

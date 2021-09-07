@@ -71,7 +71,7 @@ func TestNode_Run(t *testing.T) {
 }
 
 func TestNode_Mining(t *testing.T) {
-	dataDir, andrej, babaYaga, err := setupTestNodeDir(1000000)
+	dataDir, andrej, babaYaga, err := setupTestNodeDir(1000000, 0)
 	if err != nil {
 		t.Error(err)
 	}
@@ -181,7 +181,7 @@ func TestNode_Mining(t *testing.T) {
 // TODO: Improve this with TX Receipt concept in next chapters.
 // TODO: Improve this with a 100% clear error check.
 func TestNode_ForgedTx(t *testing.T) {
-	dataDir, andrej, babaYaga, err := setupTestNodeDir(1000000)
+	dataDir, andrej, babaYaga, err := setupTestNodeDir(1000000, 0)
 	if err != nil {
 		t.Error(err)
 	}
@@ -269,7 +269,7 @@ func TestNode_ForgedTx(t *testing.T) {
 // TODO: Improve this with TX Receipt concept in next chapters.
 // TODO: Improve this with a 100% clear error check.
 func TestNode_ReplayedTx(t *testing.T) {
-	dataDir, andrej, babaYaga, err := setupTestNodeDir(1000000)
+	dataDir, andrej, babaYaga, err := setupTestNodeDir(1000000, 0)
 	if err != nil {
 		t.Error(err)
 	}
@@ -366,273 +366,326 @@ func TestNode_ReplayedTx(t *testing.T) {
 //	- BabaYaga tries to mine 1 TX left
 //		- BabaYaga succeeds and gets her block reward
 func TestNode_MiningStopsOnNewSyncedBlock(t *testing.T) {
-	babaYaga := database.NewAccount(testKsBabaYagaAccount)
-	andrej := database.NewAccount(testKsAndrejAccount)
-
-	dataDir, err := getTestDataDirPath()
-	if err != nil {
-		t.Fatal(err)
+	tc := []struct {
+		name     string
+		ForkTIP1 uint64
+	}{
+		{"Legacy", 35},  // Prior ForkTIP1 was activated on number 35
+		{"ForkTIP1", 0}, // To test new blocks when the ForkTIP1 is active
 	}
 
-	genesisBalances := make(map[common.Address]uint)
-	genesisBalances[andrej] = 1000000
-	genesis := database.Genesis{Balances: genesisBalances}
-	genesisJson, err := json.Marshal(genesis)
-	if err != nil {
-		t.Fatal(err)
-	}
+	for _, tc := range tc {
+		t.Run(tc.name, func(t *testing.T) {
+			babaYaga := database.NewAccount(testKsBabaYagaAccount)
+			andrej := database.NewAccount(testKsAndrejAccount)
 
-	err = database.InitDataDirIfNotExists(dataDir, genesisJson)
-	defer fs.RemoveDir(dataDir)
-
-	err = copyKeystoreFilesIntoTestDataDirPath(dataDir)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// Required for AddPendingTX() to describe
-	// from what node the TX came from (local node in this case)
-	nInfo := NewPeerNode(
-		"127.0.0.1",
-		8085,
-		false,
-		database.NewAccount(""),
-		true,
-		nodeVersion,
-	)
-
-	// Start mining with a high mining difficulty, just to be slow on purpose and let a synced block arrive first
-	n := New(dataDir, nInfo.IP, nInfo.Port, babaYaga, nInfo, nodeVersion, uint(5))
-
-	// Allow the test to run for 30 mins, in the worst case
-	ctx, closeNode := context.WithTimeout(context.Background(), time.Minute*30)
-
-	tx1 := database.NewBaseTx(andrej, babaYaga, 1, 1, "")
-	tx2 := database.NewBaseTx(andrej, babaYaga, 2, 2, "")
-
-	signedTx1, err := wallet.SignTxWithKeystoreAccount(tx1, andrej, testKsAccountsPwd, wallet.GetKeystoreDirPath(dataDir))
-	if err != nil {
-		t.Error(err)
-		return
-	}
-
-	signedTx2, err := wallet.SignTxWithKeystoreAccount(tx2, andrej, testKsAccountsPwd, wallet.GetKeystoreDirPath(dataDir))
-	if err != nil {
-		t.Error(err)
-		return
-	}
-	tx2Hash, err := signedTx2.Hash()
-	if err != nil {
-		t.Error(err)
-		return
-	}
-
-	// Pre-mine a valid block without running the `n.Run()`
-	// with Andrej as a miner who will receive the block reward,
-	// to simulate the block came on the fly from another peer
-	validPreMinedPb := NewPendingBlock(database.Hash{}, 0, andrej, []database.SignedTx{signedTx1})
-	validSyncedBlock, err := Mine(ctx, validPreMinedPb, defaultTestMiningDifficulty)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// Add 2 new TXs into the BabaYaga's node, triggers mining
-	go func() {
-		time.Sleep(time.Second * (miningIntervalSeconds - 2))
-
-		err := n.AddPendingTX(signedTx1, nInfo)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		err = n.AddPendingTX(signedTx2, nInfo)
-		if err != nil {
-			t.Fatal(err)
-		}
-	}()
-
-	// Interrupt the previously started mining with a new synced block
-	// BUT this block contains only 1 TX the previous mining activity tried to mine
-	// which means the mining will start again for the one pending TX that is left and wasn't in
-	// the synced block
-	go func() {
-		time.Sleep(time.Second * (miningIntervalSeconds + 2))
-		if !n.isMining {
-			t.Fatal("should be mining")
-		}
-
-		// Change the mining difficulty back to the testing level from previously purposefully slow, high value
-		// otherwise the synced block would be invalid.
-		n.ChangeMiningDifficulty(defaultTestMiningDifficulty)
-		_, err := n.state.AddBlock(validSyncedBlock)
-		if err != nil {
-			t.Fatal(err)
-		}
-		// Mock the Andrej's block came from a network
-		n.newSyncedBlocks <- validSyncedBlock
-
-		time.Sleep(time.Second)
-		if n.isMining {
-			t.Fatal("synced block should have canceled mining")
-		}
-
-		// Mined TX1 by Andrej should be removed from the Mempool
-		_, onlyTX2IsPending := n.pendingTXs[tx2Hash.Hex()]
-
-		if len(n.pendingTXs) != 1 && !onlyTX2IsPending {
-			t.Fatal("synced block should have canceled mining of already mined TX")
-		}
-	}()
-
-	go func() {
-		// Regularly check whenever both TXs are now mined
-		ticker := time.NewTicker(time.Second * 10)
-
-		for {
-			select {
-			case <-ticker.C:
-				if n.state.LatestBlock().Header.Number == 1 {
-					closeNode()
-					return
-				}
-			}
-		}
-	}()
-
-	go func() {
-		time.Sleep(time.Second * 2)
-
-		// Take a snapshot of the DB balances
-		// before the mining is finished and the 2 blocks
-		// are created.
-		startingAndrejBalance := n.state.Balances[andrej]
-		startingBabaYagaBalance := n.state.Balances[babaYaga]
-
-		// Wait until the 30 mins timeout is reached or
-		// the 2 blocks got already mined and the closeNode() was triggered
-		<-ctx.Done()
-
-		endAndrejBalance := n.state.Balances[andrej]
-		endBabaYagaBalance := n.state.Balances[babaYaga]
-
-		// In TX1 Andrej transferred 1 TBB token to BabaYaga
-		// In TX2 Andrej transferred 2 TBB tokens to BabaYaga
-		expectedEndAndrejBalance := startingAndrejBalance - tx1.Cost() - tx2.Cost() + database.BlockReward + database.TxFee
-		expectedEndBabaYagaBalance := startingBabaYagaBalance + tx1.Value + tx2.Value + database.BlockReward + database.TxFee
-
-		if endAndrejBalance != expectedEndAndrejBalance {
-			t.Errorf("Andrej expected end balance is %d not %d", expectedEndAndrejBalance, endAndrejBalance)
-		}
-
-		if endBabaYagaBalance != expectedEndBabaYagaBalance {
-			t.Errorf("BabaYaga expected end balance is %d not %d", expectedEndBabaYagaBalance, endBabaYagaBalance)
-		}
-
-		t.Logf("Starting Andrej balance: %d", startingAndrejBalance)
-		t.Logf("Starting BabaYaga balance: %d", startingBabaYagaBalance)
-		t.Logf("Ending Andrej balance: %d", endAndrejBalance)
-		t.Logf("Ending BabaYaga balance: %d", endBabaYagaBalance)
-	}()
-
-	_ = n.Run(ctx, true, "")
-
-	if n.state.LatestBlock().Header.Number != 1 {
-		t.Fatal("was suppose to mine 2 pending TX into 2 valid blocks under 30m")
-	}
-
-	if len(n.pendingTXs) != 0 {
-		t.Fatal("no pending TXs should be left to mine")
-	}
-}
-
-func TestNode_MiningSpamTransactions(t *testing.T) {
-	andrejBalance := uint(1000)
-	babaYagaBalance := uint(0)
-	minerBalance := uint(0)
-	minerKey, err := wallet.NewRandomKey()
-	if err != nil {
-		t.Fatal(err)
-	}
-	miner := minerKey.Address
-	dataDir, andrej, babaYaga, err := setupTestNodeDir(andrejBalance)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer fs.RemoveDir(dataDir)
-
-	n := New(dataDir, "127.0.0.1", 8085, miner, PeerNode{}, nodeVersion, defaultTestMiningDifficulty)
-	ctx, closeNode := context.WithCancel(context.Background())
-	minerPeerNode := NewPeerNode("127.0.0.1", 8085, false, miner, true, nodeVersion)
-
-	txValue := uint(200)
-	txCount := uint(4)
-
-	go func() {
-		// Wait for the node to run and initialize its state and other components
-		time.Sleep(time.Second)
-
-		spamTXs := make([]database.SignedTx, txCount)
-
-		now := uint64(time.Now().Unix())
-		// Schedule 4 transfers from Andrej -> BabaYaga
-		for i := uint(1); i <= txCount; i++ {
-			txNonce := i
-			tx := database.NewBaseTx(andrej, babaYaga, txValue, txNonce, "")
-			// Ensure every TX has a unique timestamp and the nonce 0 has oldest timestamp, nonce 1 younger timestamp etc
-			tx.Time = now - uint64(txCount-i*100)
-
-			signedTx, err := wallet.SignTxWithKeystoreAccount(tx, andrej, testKsAccountsPwd, wallet.GetKeystoreDirPath(dataDir))
+			dataDir, err := getTestDataDirPath()
 			if err != nil {
 				t.Fatal(err)
 			}
 
-			spamTXs[i-1] = signedTx
-		}
-
-		// Collect pre-signed TXs to an array to make sure all 4 fit into a block within the mining interval,
-		// otherwise slower machines can start mining after TX 3 or so, making the test fail on e.g: Github Actions.
-		for _, tx := range spamTXs {
-			_ = n.AddPendingTX(tx, minerPeerNode)
-		}
-	}()
-
-	go func() {
-		// Periodically check if we mined the block
-		ticker := time.NewTicker(10 * time.Second)
-
-		for {
-			select {
-			case <-ticker.C:
-				if !n.state.LatestBlockHash().IsEmpty() {
-					closeNode()
-					return
-				}
+			genesisBalances := make(map[common.Address]uint)
+			genesisBalances[andrej] = 1000000
+			genesis := database.Genesis{Balances: genesisBalances, ForkTIP1: tc.ForkTIP1}
+			genesisJson, err := json.Marshal(genesis)
+			if err != nil {
+				t.Fatal(err)
 			}
-		}
-	}()
 
-	// Run the node, mining and everything in a blocking call (hence the go-routines before)
-	_ = n.Run(ctx, true, "")
+			err = database.InitDataDirIfNotExists(dataDir, genesisJson)
+			defer fs.RemoveDir(dataDir)
 
-	expectedAndrejBalance := andrejBalance - (txCount * txValue) - (txCount * database.TxFee)
-	expectedBabaYagaBalance := babaYagaBalance + (txCount * txValue)
-	expectedMinerBalance := minerBalance + database.BlockReward + (txCount * database.TxFee)
+			err = copyKeystoreFilesIntoTestDataDirPath(dataDir)
+			if err != nil {
+				t.Fatal(err)
+			}
 
-	if n.state.Balances[andrej] != expectedAndrejBalance {
-		t.Errorf("Andrej balance is incorrect. Expected: %d. Got: %d", expectedAndrejBalance, n.state.Balances[andrej])
+			// Required for AddPendingTX() to describe
+			// from what node the TX came from (local node in this case)
+			nInfo := NewPeerNode(
+				"127.0.0.1",
+				8085,
+				false,
+				database.NewAccount(""),
+				true,
+				nodeVersion,
+			)
+
+			// Start mining with a high mining difficulty, just to be slow on purpose and let a synced block arrive first
+			n := New(dataDir, nInfo.IP, nInfo.Port, babaYaga, nInfo, nodeVersion, uint(5))
+
+			// Allow the test to run for 30 mins, in the worst case
+			ctx, closeNode := context.WithTimeout(context.Background(), time.Minute*30)
+
+			tx1 := database.NewBaseTx(andrej, babaYaga, 1, 1, "")
+			tx2 := database.NewBaseTx(andrej, babaYaga, 2, 2, "")
+
+			signedTx1, err := wallet.SignTxWithKeystoreAccount(tx1, andrej, testKsAccountsPwd, wallet.GetKeystoreDirPath(dataDir))
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			signedTx2, err := wallet.SignTxWithKeystoreAccount(tx2, andrej, testKsAccountsPwd, wallet.GetKeystoreDirPath(dataDir))
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			tx2Hash, err := signedTx2.Hash()
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			// Pre-mine a valid block without running the `n.Run()`
+			// with Andrej as a miner who will receive the block reward,
+			// to simulate the block came on the fly from another peer
+			validPreMinedPb := NewPendingBlock(database.Hash{}, 0, andrej, []database.SignedTx{signedTx1})
+			validSyncedBlock, err := Mine(ctx, validPreMinedPb, defaultTestMiningDifficulty)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			// Add 2 new TXs into the BabaYaga's node, triggers mining
+			go func() {
+				time.Sleep(time.Second * (miningIntervalSeconds - 2))
+
+				err := n.AddPendingTX(signedTx1, nInfo)
+				if err != nil {
+					t.Fatal(err)
+				}
+
+				err = n.AddPendingTX(signedTx2, nInfo)
+				if err != nil {
+					t.Fatal(err)
+				}
+			}()
+
+			// Interrupt the previously started mining with a new synced block
+			// BUT this block contains only 1 TX the previous mining activity tried to mine
+			// which means the mining will start again for the one pending TX that is left and wasn't in
+			// the synced block
+			go func() {
+				time.Sleep(time.Second * (miningIntervalSeconds + 2))
+				if !n.isMining {
+					t.Fatal("should be mining")
+				}
+
+				// Change the mining difficulty back to the testing level from previously purposefully slow, high value
+				// otherwise the synced block would be invalid.
+				n.ChangeMiningDifficulty(defaultTestMiningDifficulty)
+				_, err := n.state.AddBlock(validSyncedBlock)
+				if err != nil {
+					t.Fatal(err)
+				}
+				// Mock the Andrej's block came from a network
+				n.newSyncedBlocks <- validSyncedBlock
+
+				time.Sleep(time.Second)
+				if n.isMining {
+					t.Fatal("synced block should have canceled mining")
+				}
+
+				// Mined TX1 by Andrej should be removed from the Mempool
+				_, onlyTX2IsPending := n.pendingTXs[tx2Hash.Hex()]
+
+				if len(n.pendingTXs) != 1 && !onlyTX2IsPending {
+					t.Fatal("synced block should have canceled mining of already mined TX")
+				}
+			}()
+
+			go func() {
+				// Regularly check whenever both TXs are now mined
+				ticker := time.NewTicker(time.Second * 10)
+
+				for {
+					select {
+					case <-ticker.C:
+						if n.state.LatestBlock().Header.Number == 1 {
+							closeNode()
+							return
+						}
+					}
+				}
+			}()
+
+			go func() {
+				time.Sleep(time.Second * 2)
+
+				// Take a snapshot of the DB balances
+				// before the mining is finished and the 2 blocks
+				// are created.
+				startingAndrejBalance := n.state.Balances[andrej]
+				startingBabaYagaBalance := n.state.Balances[babaYaga]
+
+				// Wait until the 30 mins timeout is reached or
+				// the 2 blocks got already mined and the closeNode() was triggered
+				<-ctx.Done()
+
+				endAndrejBalance := n.state.Balances[andrej]
+				endBabaYagaBalance := n.state.Balances[babaYaga]
+
+				// In TX1 Andrej transferred 1 TBB token to BabaYaga
+				// In TX2 Andrej transferred 2 TBB tokens to BabaYaga
+
+				var expectedEndAndrejBalance uint
+				var expectedEndBabaYagaBalance uint
+
+				// Andrej will occur the cost of SENDING 2 TXs but will collect the reward for mining one block with tx1 in it
+				// BabaYaga will RECEIVE value from 2 TXs and will also collect the reward for mining one block with tx2 in it
+
+				if n.state.IsTIP1Fork() {
+					expectedEndAndrejBalance = startingAndrejBalance - tx1.Cost(true) - tx2.Cost(true) + database.BlockReward + tx1.GasCost()
+					expectedEndBabaYagaBalance = startingBabaYagaBalance + tx1.Value + tx2.Value + database.BlockReward + tx2.GasCost()
+				} else {
+					expectedEndAndrejBalance = startingAndrejBalance - tx1.Cost(false) - tx2.Cost(false) + database.BlockReward + database.TxFee
+					expectedEndBabaYagaBalance = startingBabaYagaBalance + tx1.Value + tx2.Value + database.BlockReward + database.TxFee
+				}
+
+				if endAndrejBalance != expectedEndAndrejBalance {
+					t.Errorf("Andrej expected end balance is %d not %d", expectedEndAndrejBalance, endAndrejBalance)
+				}
+
+				if endBabaYagaBalance != expectedEndBabaYagaBalance {
+					t.Errorf("BabaYaga expected end balance is %d not %d", expectedEndBabaYagaBalance, endBabaYagaBalance)
+				}
+
+				t.Logf("Starting Andrej balance: %d", startingAndrejBalance)
+				t.Logf("Starting BabaYaga balance: %d", startingBabaYagaBalance)
+				t.Logf("Ending Andrej balance: %d", endAndrejBalance)
+				t.Logf("Ending BabaYaga balance: %d", endBabaYagaBalance)
+			}()
+
+			_ = n.Run(ctx, true, "")
+
+			if n.state.LatestBlock().Header.Number != 1 {
+				t.Fatal("was suppose to mine 2 pending TX into 2 valid blocks under 30m")
+			}
+
+			if len(n.pendingTXs) != 0 {
+				t.Fatal("no pending TXs should be left to mine")
+			}
+		})
+	}
+}
+
+func TestNode_MiningSpamTransactions(t *testing.T) {
+	tc := []struct {
+		name     string
+		ForkTIP1 uint64
+	}{
+		{"Legacy", 35},  // Prior ForkTIP1 was activated on number 35
+		{"ForkTIP1", 0}, // To test new blocks when the ForkTIP1 is active
 	}
 
-	if n.state.Balances[babaYaga] != expectedBabaYagaBalance {
-		t.Errorf("BabaYaga balance is incorrect. Expected: %d. Got: %d", expectedBabaYagaBalance, n.state.Balances[babaYaga])
-	}
+	for _, tc := range tc {
+		t.Run(tc.name, func(t *testing.T) {
 
-	if n.state.Balances[miner] != expectedMinerBalance {
-		t.Errorf("Miner balance is incorrect. Expected: %d. Got: %d", expectedMinerBalance, n.state.Balances[miner])
-	}
+			andrejBalance := uint(1000)
+			babaYagaBalance := uint(0)
+			minerBalance := uint(0)
+			minerKey, err := wallet.NewRandomKey()
+			if err != nil {
+				t.Fatal(err)
+			}
+			miner := minerKey.Address
+			dataDir, andrej, babaYaga, err := setupTestNodeDir(andrejBalance, tc.ForkTIP1)
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer fs.RemoveDir(dataDir)
 
-	t.Logf("Andrej final balance: %d TBB", n.state.Balances[andrej])
-	t.Logf("BabaYaga final balance: %d TBB", n.state.Balances[babaYaga])
-	t.Logf("Miner final balance: %d TBB", n.state.Balances[miner])
+			n := New(dataDir, "127.0.0.1", 8085, miner, PeerNode{}, nodeVersion, defaultTestMiningDifficulty)
+			ctx, closeNode := context.WithCancel(context.Background())
+			minerPeerNode := NewPeerNode("127.0.0.1", 8085, false, miner, true, nodeVersion)
+
+			txValue := uint(200)
+			txCount := uint(4)
+			spamTXs := make([]database.SignedTx, txCount)
+
+			go func() {
+				// Wait for the node to run and initialize its state and other components
+				time.Sleep(time.Second)
+
+				now := uint64(time.Now().Unix())
+				// Schedule 4 transfers from Andrej -> BabaYaga
+				for i := uint(1); i <= txCount; i++ {
+					txNonce := i
+					tx := database.NewBaseTx(andrej, babaYaga, txValue, txNonce, "")
+					// Ensure every TX has a unique timestamp and the nonce 0 has oldest timestamp, nonce 1 younger timestamp etc
+					tx.Time = now - uint64(txCount-i*100)
+
+					signedTx, err := wallet.SignTxWithKeystoreAccount(tx, andrej, testKsAccountsPwd, wallet.GetKeystoreDirPath(dataDir))
+					if err != nil {
+						t.Fatal(err)
+					}
+
+					spamTXs[i-1] = signedTx
+				}
+
+				// Collect pre-signed TXs to an array to make sure all 4 fit into a block within the mining interval,
+				// otherwise slower machines can start mining after TX 3 or so, making the test fail on e.g: Github Actions.
+				for _, tx := range spamTXs {
+					_ = n.AddPendingTX(tx, minerPeerNode)
+				}
+			}()
+
+			go func() {
+				// Periodically check if we mined the block
+				ticker := time.NewTicker(10 * time.Second)
+
+				for {
+					select {
+					case <-ticker.C:
+						if !n.state.LatestBlockHash().IsEmpty() {
+							closeNode()
+							return
+						}
+					}
+				}
+			}()
+
+			// Run the node, mining and everything in a blocking call (hence the go-routines before)
+			_ = n.Run(ctx, true, "")
+
+			var expectedAndrejBalance uint
+			var expectedBabaYagaBalance uint
+			var expectedMinerBalance uint
+
+			// in nutshell: sender occurs tx.Cost(), receiver gains tx.Value() and miner collects tx.GasCost()
+			if n.state.IsTIP1Fork() {
+				expectedAndrejBalance = andrejBalance
+				expectedMinerBalance = minerBalance + database.BlockReward
+
+				for _, tx := range spamTXs {
+					expectedAndrejBalance -= tx.Cost(true)
+					expectedMinerBalance += tx.GasCost()
+				}
+
+				expectedBabaYagaBalance = babaYagaBalance + (txCount * txValue)
+			} else {
+				expectedAndrejBalance = andrejBalance - (txCount * txValue) - (txCount * database.TxFee)
+				expectedBabaYagaBalance = babaYagaBalance + (txCount * txValue)
+				expectedMinerBalance = minerBalance + database.BlockReward + (txCount * database.TxFee)
+			}
+
+			if n.state.Balances[andrej] != expectedAndrejBalance {
+				t.Errorf("Andrej balance is incorrect. Expected: %d. Got: %d", expectedAndrejBalance, n.state.Balances[andrej])
+			}
+
+			if n.state.Balances[babaYaga] != expectedBabaYagaBalance {
+				t.Errorf("BabaYaga balance is incorrect. Expected: %d. Got: %d", expectedBabaYagaBalance, n.state.Balances[babaYaga])
+			}
+
+			if n.state.Balances[miner] != expectedMinerBalance {
+				t.Errorf("Miner balance is incorrect. Expected: %d. Got: %d", expectedMinerBalance, n.state.Balances[miner])
+			}
+
+			t.Logf("Andrej final balance: %d TBB", n.state.Balances[andrej])
+			t.Logf("BabaYaga final balance: %d TBB", n.state.Balances[babaYaga])
+			t.Logf("Miner final balance: %d TBB", n.state.Balances[miner])
+		})
+	}
 }
 
 // Creates dir like: "/tmp/tbb_test945924586"
@@ -693,7 +746,7 @@ func copyKeystoreFilesIntoTestDataDirPath(dataDir string) error {
 // setupTestNodeDir creates a default testing node directory with 2 keystore accounts
 //
 // Remember to remove the dir once test finishes: defer fs.RemoveDir(dataDir)
-func setupTestNodeDir(andrejBalance uint) (dataDir string, andrej, babaYaga common.Address, err error) {
+func setupTestNodeDir(andrejBalance uint, forkTip1 uint64) (dataDir string, andrej, babaYaga common.Address, err error) {
 	babaYaga = database.NewAccount(testKsBabaYagaAccount)
 	andrej = database.NewAccount(testKsAndrejAccount)
 
@@ -704,7 +757,7 @@ func setupTestNodeDir(andrejBalance uint) (dataDir string, andrej, babaYaga comm
 
 	genesisBalances := make(map[common.Address]uint)
 	genesisBalances[andrej] = andrejBalance
-	genesis := database.Genesis{Balances: genesisBalances}
+	genesis := database.Genesis{Balances: genesisBalances, ForkTIP1: forkTip1}
 	genesisJson, err := json.Marshal(genesis)
 	if err != nil {
 		return "", common.Address{}, common.Address{}, err
