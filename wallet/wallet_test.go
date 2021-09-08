@@ -19,7 +19,9 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
+	"encoding/json"
 	"fmt"
+	"github.com/stretchr/testify/require"
 	"io/ioutil"
 	"math/big"
 	"testing"
@@ -151,8 +153,25 @@ func TestSignTxWithKeystoreAccount(t *testing.T) {
 	}
 
 	if !ok {
-		t.Fatal("the TX was signed by 'from' account and should have been authentic")
+		t.Error("the TX was signed by 'from' account and should have been authentic")
+		return
 	}
+
+	// Test marshaling
+	signedTxJson, err := json.Marshal(signedTx)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	var signedTxUnmarshaled database.SignedTx
+	err = json.Unmarshal(signedTxJson, &signedTxUnmarshaled)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	require.Equal(t, signedTx, signedTxUnmarshaled)
 }
 
 func TestSignForgedTxWithKeystoreAccount(t *testing.T) {

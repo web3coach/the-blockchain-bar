@@ -33,7 +33,7 @@ type Tx struct {
 	From     common.Address `json:"from"`
 	To       common.Address `json:"to"`
 	Gas      uint           `json:"gas"`
-	GasPrice uint           `json:"gas_price"`
+	GasPrice uint           `json:"gasPrice"`
 	Value    uint           `json:"value"`
 	Nonce    uint           `json:"nonce"`
 	Data     string         `json:"data"`
@@ -84,6 +84,106 @@ func (t Tx) Hash() (Hash, error) {
 
 func (t Tx) Encode() ([]byte, error) {
 	return json.Marshal(t)
+}
+
+// MarshalJSON is the main source of truth for encoding a TX for hash calculation from expected attributes.
+//
+// The logic is bit ugly and hacky but prevents infinite marshaling loops of embedded objects and allows
+// the structure to change with new TIPs.
+func (t Tx) MarshalJSON() ([]byte, error) {
+	// Prior TIP1
+	if t.Gas == 0 {
+		type legacyTx struct {
+			From  common.Address `json:"from"`
+			To    common.Address `json:"to"`
+			Value uint           `json:"value"`
+			Nonce uint           `json:"nonce"`
+			Data  string         `json:"data"`
+			Time  uint64         `json:"time"`
+		}
+		return json.Marshal(legacyTx{
+			From:  t.From,
+			To:    t.To,
+			Value: t.Value,
+			Nonce: t.Nonce,
+			Data:  t.Data,
+			Time:  t.Time,
+		})
+	}
+
+	type tip1Tx struct {
+		From     common.Address `json:"from"`
+		To       common.Address `json:"to"`
+		Gas      uint           `json:"gas"`
+		GasPrice uint           `json:"gasPrice"`
+		Value    uint           `json:"value"`
+		Nonce    uint           `json:"nonce"`
+		Data     string         `json:"data"`
+		Time     uint64         `json:"time"`
+	}
+
+	return json.Marshal(tip1Tx{
+		From:     t.From,
+		To:       t.To,
+		Gas:      t.Gas,
+		GasPrice: t.GasPrice,
+		Value:    t.Value,
+		Nonce:    t.Nonce,
+		Data:     t.Data,
+		Time:     t.Time,
+	})
+}
+
+// MarshalJSON is the main source of truth for encoding a TX for hash calculation (backwards compatible for TIPs).
+//
+// The logic is bit ugly and hacky but prevents infinite marshaling loops of embedded objects and allows
+// the structure to change with new TIPs.
+func (t SignedTx) MarshalJSON() ([]byte, error) {
+	// Prior TIP1
+	if t.Gas == 0 {
+		type legacyTx struct {
+			From  common.Address `json:"from"`
+			To    common.Address `json:"to"`
+			Value uint           `json:"value"`
+			Nonce uint           `json:"nonce"`
+			Data  string         `json:"data"`
+			Time  uint64         `json:"time"`
+			Sig   []byte         `json:"signature"`
+		}
+		return json.Marshal(legacyTx{
+			From:  t.From,
+			To:    t.To,
+			Value: t.Value,
+			Nonce: t.Nonce,
+			Data:  t.Data,
+			Time:  t.Time,
+			Sig:   t.Sig,
+		})
+	}
+
+	type tip1Tx struct {
+		From     common.Address `json:"from"`
+		To       common.Address `json:"to"`
+		Gas      uint           `json:"gas"`
+		GasPrice uint           `json:"gasPrice"`
+		Value    uint           `json:"value"`
+		Nonce    uint           `json:"nonce"`
+		Data     string         `json:"data"`
+		Time     uint64         `json:"time"`
+		Sig      []byte         `json:"signature"`
+	}
+
+	return json.Marshal(tip1Tx{
+		From:     t.From,
+		To:       t.To,
+		Gas:      t.Gas,
+		GasPrice: t.GasPrice,
+		Value:    t.Value,
+		Nonce:    t.Nonce,
+		Data:     t.Data,
+		Time:     t.Time,
+		Sig:      t.Sig,
+	})
 }
 
 func (t SignedTx) Hash() (Hash, error) {
