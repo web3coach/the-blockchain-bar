@@ -292,6 +292,18 @@ func ValidateTx(tx SignedTx, s *State) error {
 		if tx.Gas != TxGas {
 			return fmt.Errorf("insufficient TX gas %v. required: %v", tx.Gas, TxGas)
 		}
+
+		if tx.GasPrice < TxGasPriceDefault {
+			return fmt.Errorf("insufficient TX gasPrice %v. required at least: %v", tx.GasPrice, TxGasPriceDefault)
+		}
+
+	} else {
+		// Prior to TIP1, a signed TX must NOT populate the Gas fields to prevent consensus from crashing
+		// It's not enough to add this validation to http_routes.go because a TX could come from another node
+		// that could modify its software and broadcast such a TX, it must be validated here too.
+		if tx.Gas != 0 || tx.GasPrice != 0 {
+			return fmt.Errorf("invalid TX. `Gas` and `GasPrice` can't be populate before TIP1 fork is active")
+		}
 	}
 
 	if tx.Cost(s.IsTIP1Fork()) > s.Balances[tx.From] {

@@ -85,7 +85,7 @@ type Tx struct {
 	To       common.Address `json:"to"`
 	
 	Gas      uint           `json:"gas"`
-	GasPrice uint           `json:"gas_price"`
+	GasPrice uint           `json:"gasPrice"`
 	
 	Value    uint           `json:"value"`
 	Nonce    uint           `json:"nonce"`
