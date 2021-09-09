@@ -95,4 +95,4 @@ type Tx struct {
 ```
 
 ## Proposed Consensus Fork Number
-TBD when I finish writing Chapter 15: Blockchain Forks - What, Why, How.
+Block number 35.
