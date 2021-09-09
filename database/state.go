@@ -177,7 +177,7 @@ func (s *State) ChangeMiningDifficulty(newDifficulty uint) {
 }
 
 func (s *State) IsTIP1Fork() bool {
-	return s.LatestBlock().Header.Number >= s.forkTIP1
+	return s.NextBlockNumber() >= s.forkTIP1
 }
 
 func (s *State) Copy() State {
