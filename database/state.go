@@ -302,7 +302,7 @@ func ValidateTx(tx SignedTx, s *State) error {
 		// It's not enough to add this validation to http_routes.go because a TX could come from another node
 		// that could modify its software and broadcast such a TX, it must be validated here too.
 		if tx.Gas != 0 || tx.GasPrice != 0 {
-			return fmt.Errorf("invalid TX. `Gas` and `GasPrice` can't be populate before TIP1 fork is active")
+			return fmt.Errorf("invalid TX. `Gas` and `GasPrice` can't be populated before TIP1 fork is active")
 		}
 	}
 
