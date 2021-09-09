@@ -420,6 +420,13 @@ func TestNode_MiningStopsOnNewSyncedBlock(t *testing.T) {
 			tx1 := database.NewBaseTx(andrej, babaYaga, 1, 1, "")
 			tx2 := database.NewBaseTx(andrej, babaYaga, 2, 2, "")
 
+			if tc.name == "Legacy" {
+				tx1.Gas = 0
+				tx1.GasPrice = 0
+				tx2.Gas = 0
+				tx2.GasPrice = 0
+			}
+
 			signedTx1, err := wallet.SignTxWithKeystoreAccount(tx1, andrej, testKsAccountsPwd, wallet.GetKeystoreDirPath(dataDir))
 			if err != nil {
 				t.Error(err)
@@ -614,6 +621,11 @@ func TestNode_MiningSpamTransactions(t *testing.T) {
 					tx := database.NewBaseTx(andrej, babaYaga, txValue, txNonce, "")
 					// Ensure every TX has a unique timestamp and the nonce 0 has oldest timestamp, nonce 1 younger timestamp etc
 					tx.Time = now - uint64(txCount-i*100)
+
+					if tc.name == "Legacy" {
+						tx.Gas = 0
+						tx.GasPrice = 0
+					}
 
 					signedTx, err := wallet.SignTxWithKeystoreAccount(tx, andrej, testKsAccountsPwd, wallet.GetKeystoreDirPath(dataDir))
 					if err != nil {
