@@ -19,7 +19,7 @@ The convention is to store:
 mkdir -p $GOPATH/src/github.com/web3coach
 cd $GOPATH/src/github.com/web3coach
 
-git clone git@github.com:web3coach/the-blockchain-bar.git
+git clone https://github.com/web3coach/the-blockchain-bar.git
 ```
 
 **PS:** Make sure you actually clone it inside the `src/github.com/web3coach` directory, not your own, otherwise it won't compile. Go rules.
