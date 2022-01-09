@@ -170,7 +170,7 @@ Chapter by chapter, you will build a full peer-to-peer, autonomous training bloc
 
 You start with 0 lines of code and end-up with 13+ branches with complete executable source-code.
 
-PS: Don't worry if anything on the screen makes sense yet, it will once you go chapter by chapter; release by release.
+PS: Don't worry if nothing on the screen makes sense yet, it will once you go chapter by chapter; release by release.
 
 ![peer-to-peer blockchain system in action](public/img/andrej_babayaga_caesar_sync_p2p.png)
 
