@@ -3,6 +3,7 @@
 The Blockchain Bar Improvement Proposals (TIPs) describe standards for the TheBlockchainBar platform, including core protocol specifications, client APIs, and contract standards.
 
 - [TIP-1: Dynamic Transaction Cost like in Ethereum](./TIP-1.md)
+- [TIP-2: The Blockchain Bar UI - Database Explorer, Faucet, Wallet](./TIP-2.md)
 
 ## Ideas
 [The Blockchain Bar eBook](https://web3coach.gumroad.com/l/build-a-blockchain-from-scratch-in-go) serves as a learning playfield. A testing, experimental blockchain where you can practice peer-to-peer development and programming crypto applications.
