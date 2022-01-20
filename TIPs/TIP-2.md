@@ -13,41 +13,122 @@ To help developers learn what's happening behind the scenes in the blockchain ne
 
 // TODO: Add more of your ideas here.
 
+**PS for frontend devs: We will need a new `web` directory in this repository with all the frontend code for Explorer, Faucet and Wallet.**
+
 ## Database Explorer
-### Ideas
+### Idea - Block Traversal
+#### User Story
 As a User I want to traverse database blocks,
 so I can see all The Blockchain Bar's users activity and what happened when.
 
+#### Backend Proposal
+Add a new API endpoint `/block/$height` to `./node/http_routes.go` to retrieve block by number.
+
+Add a new API endpoint `/block/$hash` to `./node/http_routes.go`  to retrieve block by hash.
+
+Both endpoints will return a Block as JSON:
+```
+type Block struct {
+	Header BlockHeader `json:"header"`
+	TXs    []SignedTx  `json:"payload"`
+}
+
+type BlockHeader struct {
+	Parent Hash           `json:"parent"`
+	Number uint64         `json:"number"`
+	Nonce  uint32         `json:"nonce"`
+	Time   uint64         `json:"time"`
+	Miner  common.Address `json:"miner"`
+}
+
+type BlockFS struct {
+	Key   Hash  `json:"hash"`
+	Value Block `json:"block"`
+}
+```
+
+The easiest way to achieve this ATM will be by modifying the `func GetBlocksAfter(blockHash Hash, dataDir string) ([]Block, error) {` and adding a new argument `limit uint` to the function. As well as creating another getter to the `database` package like `func GetBlocksByNumberAfter(blockHash Hash, limit uint, dataDir string) ([]Block, error) {` and abstracting the common code shared between these two functions (the already implement blocks retrieval from disk) to a third function.
+
+#### Frontend Proposal
+// TODO: Add here some UI ideas how this could be displayed in the UI.
+
+---
+
+### Idea - Query Balance
+#### User Story
 As a User I want to check a balance of an account.
 
+#### Backend Proposal
+
+#### Frontend Proposal
+
+---
+
+### Idea - Visualize Mempool
+#### User Story
 As a User I want to see what's the difference between a database and a Mempool.
 
+#### Backend Proposal
+
+#### Frontend Proposal
+
+---
+
+### Idea - Visualize P2P with Animations
+#### User Story
 As a User I want to see how transactions are broadcasted over p2p,
 so I have a better idea what's happening after a transaction is broadcasted.
 
-### Frontend + Backend Proposal
-// TODO: Add here your proposal how the UI could work and what backend API endpoints you need.
+#### Backend Proposal
+
+#### Frontend Proposal
+
+---
 
 ## Wallet
-### Ideas
+### Idea - Create Account
+#### User Story
 As a User I want to create my The Blockchain Bar account,
 so I can receive and send testing tokens.
 
+#### Backend Proposal
+
+#### Frontend Proposal
+
+---
+
+### Idea - Create a Transaction and Sign it on Frontend
+#### User Story
 As a User I want to learn how to construct a valid Transactions,
 so I learn about gas fees, nonce and crypto signing.
 
-### Frontend + Backend Proposal
-// TODO: Add here your proposal how the UI could work and what backend API endpoints you need.
+#### Backend Proposal
+
+#### Frontend Proposal
+
+---
 
 ## Faucet
-### Ideas
+### Idea - Faucet for Giving Away Free Tokens
+#### User Story
 As a User I want to request free testing tokens,
 so I can experiment around with my Wallet.
 
-### Frontend + Backend Proposal
-// TODO: Add here your proposal how the UI could work and what backend API endpoints you need.
+#### Backend Proposal
 
----
+#### Frontend Proposal
+
+--- 
+
+### Idea - Visualize Mempool
+#### User Story
+As a User I want to see what's the difference between a database and a Mempool.
+
+#### Backend Proposal
+
+#### Frontend Proposal
+
+--- 
 
 ## Currently Available API endpoints:
 The below list is very limited and would need a lot of new API endpoints to support all above UI features. Great opportunity to practice Go programming. 
