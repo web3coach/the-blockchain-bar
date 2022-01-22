@@ -1,0 +1,10 @@
+version: "3.5"
+services:
+  tbb-local:
+    build:
+      context: ./
+    entrypoint: /bin/sh
+    command: ["-c", "bash"]
+    volumes:
+      - ./:/build
+

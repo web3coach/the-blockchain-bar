@@ -6,3 +6,11 @@ install:
 
 test:
 	go test -v -p=1 -timeout=0 ./...
+
+image:
+	docker build -t tbb:latest .
+
+local:
+	docker-compose build
+	docker-compose run tbb-local
+
