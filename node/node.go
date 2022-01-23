@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/caddyserver/certmagic"
@@ -48,6 +49,8 @@ const endpointAddPeerQueryKeyVersion = "version"
 
 const miningIntervalSeconds = 10
 const DefaultMiningDifficulty = 3
+
+const endpointBlockByNumber = "/node/"
 
 type PeerNode struct {
 	IP          string         `json:"ip"`
@@ -168,6 +171,14 @@ func (n *Node) serveHttp(ctx context.Context, isSSLDisabled bool, sslEmail strin
 
 	handler.HandleFunc(endpointAddPeer, func(w http.ResponseWriter, r *http.Request) {
 		addPeerHandler(w, r, n)
+	})
+
+	handler.HandleFunc(endpointBlockByNumber, func(w http.ResponseWriter, r *http.Request) {
+		p := strings.Split(r.URL.Path, "/")[1:]
+		if len(p) < 2 {
+			return
+		}
+		blockByNumberOrHash(w, r, n, p[1])
 	})
 
 	if isSSLDisabled {

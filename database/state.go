@@ -43,6 +43,9 @@ type State struct {
 	miningDifficulty uint
 
 	forkTIP1 uint64
+
+	HashCache   map[string]int64
+	HeightCache map[uint64]int64
 }
 
 func NewStateFromDisk(dataDir string, miningDifficulty uint) (*State, error) {
@@ -71,7 +74,10 @@ func NewStateFromDisk(dataDir string, miningDifficulty uint) (*State, error) {
 
 	scanner := bufio.NewScanner(f)
 
-	state := &State{balances, account2nonce, f, Block{}, Hash{}, false, miningDifficulty, gen.ForkTIP1}
+	state := &State{balances, account2nonce, f, Block{}, Hash{}, false, miningDifficulty, gen.ForkTIP1, map[string]int64{}, map[uint64]int64{}}
+
+	// set file position
+	filePos := int64(0)
 
 	for scanner.Scan() {
 		if err := scanner.Err(); err != nil {
@@ -94,6 +100,11 @@ func NewStateFromDisk(dataDir string, miningDifficulty uint) (*State, error) {
 		if err != nil {
 			return nil, err
 		}
+
+		// set search caches
+		state.HashCache[blockFs.Key.Hex()] = filePos
+		state.HeightCache[blockFs.Value.Header.Number] = filePos
+		filePos += int64(len(blockFsJson)) + 1
 
 		state.latestBlock = blockFs.Value
 		state.latestBlockHash = blockFs.Key
@@ -137,10 +148,18 @@ func (s *State) AddBlock(b Block) (Hash, error) {
 	fmt.Printf("\nPersisting new Block to disk:\n")
 	fmt.Printf("\t%s\n", blockFsJson)
 
+	// get file pos for cache
+	fs, _ := s.dbFile.Stat()
+	filePos := fs.Size() + 1
+
 	_, err = s.dbFile.Write(append(blockFsJson, '\n'))
 	if err != nil {
 		return Hash{}, err
 	}
+
+	// set search caches
+	s.HashCache[blockFs.Key.Hex()] = filePos
+	s.HeightCache[blockFs.Value.Header.Number] = filePos
 
 	s.Balances = pendingState.Balances
 	s.Account2Nonce = pendingState.Account2Nonce
