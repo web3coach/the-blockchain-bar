@@ -237,6 +237,10 @@ git checkout c1_genesis_json
 go install ./cmd/...
 ```
 
+## Install with Docker
+
+[Open Docker instructions.](./Docker.md)
+
 ## CLI
 ### Show available commands and flags
 ```bash
