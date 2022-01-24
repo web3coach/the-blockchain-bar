@@ -351,7 +351,14 @@ Write a tweet and let me know how did you like this book! Tag me in it [@Web3Coa
 
 See you on Twitter - [@Web3Coach.](https://twitter.com/Web3Coach)
 
-# License
-The the-blockchain-bar library (i.e. all code outside of the cmd directory) is licensed under the GNU Lesser General Public License v3.0, also included in our repository in the COPYING.LESSER file.
+# Disclaimer
+The Blockchain Bar repository, the `tbb` binary and `Build a Blockchain from Scratch in Go` eBook is **for learning, educational purposes.** The codebase is NOT ready for production. The components are purposefully simplified to don't overwhelm new blockchain students, but complex enough to teach you how blockchains work under the hood.
 
-The the-blockchain-bar binaries (i.e. all code inside of the cmd directory) is licensed under the GNU General Public License v3.0, also included in our repository in the COPYING file.
+# License
+The Blockchain Bar library (i.e. all code outside of the `cmd` directory) is licensed under the
+[GNU Lesser General Public License v3.0](https://www.gnu.org/licenses/lgpl-3.0.en.html),
+also included in our repository in the `COPYING.LESSER` file.
+
+The Blockchain Bar binaries (i.e. all code inside of the `cmd` directory) is licensed under the
+[GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.en.html), also
+included in our repository in the `COPYING` file.
