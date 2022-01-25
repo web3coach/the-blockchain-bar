@@ -50,7 +50,7 @@ const endpointAddPeerQueryKeyVersion = "version"
 const miningIntervalSeconds = 10
 const DefaultMiningDifficulty = 3
 
-const endpointBlockByNumber = "/node/"
+const endpointBlockByNumber = "/block/"
 
 type PeerNode struct {
 	IP          string         `json:"ip"`

@@ -18,7 +18,7 @@ package database
 import (
 	"bufio"
 	"encoding/json"
-	"errors"
+	"fmt"
 	"os"
 	"reflect"
 )
@@ -62,29 +62,7 @@ func GetBlocksAfter(blockHash Hash, dataDir string) ([]Block, error) {
 }
 
 // GetBlockByHeightOrHash returns the requested block by hash or height.
-// Add a map cache of height and hash to State struct
-// and the corresponding functions to update and read this info
-// The value of the maps corresponds to the position on the file corresponding to the block
-
-//
-//  type State struct {
-//    Balances      map[common.Address]uint
-//    Account2Nonce map[common.Address]uint
-//
-//    HashCache     map[string]uint64
-//    HeightCache   map[uint64]uint64
-//
-//    dbFile *os.File
-//
-//    latestBlock     Block
-//    latestBlockHash Hash
-//    hasGenesisBlock bool
-//
-//    miningDifficulty uint
-//
-//    forkTIP1 uint64
-//  }
-//
+// It uses cached data in the State struct (HashCache / HeightCache)
 func GetBlockByHeightOrHash(state *State, height uint64, hash, dataDir string) (Block, Hash, error) {
 
 	blk := Block{}
@@ -96,7 +74,10 @@ func GetBlockByHeightOrHash(state *State, height uint64, hash, dataDir string) (
 	}
 
 	if !ok {
-		return blk, hsh, errors.New("invalid block hash or height")
+		if hash != "" {
+			return blk, hsh, fmt.Errorf("invalid hash: '%v'", hash)
+		}
+		return blk, hsh, fmt.Errorf("invalid height: '%v'", height)
 	}
 
 	f, err := os.OpenFile(getBlocksDbFilePath(dataDir), os.O_RDONLY, 0600)

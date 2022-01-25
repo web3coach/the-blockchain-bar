@@ -16,7 +16,6 @@
 package node
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -174,10 +173,6 @@ func blockByNumberOrHash(w http.ResponseWriter, r *http.Request, node *Node, par
 	height, err := strconv.ParseUint(param, 10, 64)
 	if err != nil {
 		hsh = strings.TrimSpace(param)
-		if len(param) != 64 {
-			writeErrRes(w, errors.New("invalid block hash or height"))
-			return
-		}
 	}
 
 	blk, hash, err := database.GetBlockByHeightOrHash(node.state, height, hsh, node.dataDir)
