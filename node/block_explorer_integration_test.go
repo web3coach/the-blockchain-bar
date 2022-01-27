@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
 	"github.com/web3coach/the-blockchain-bar/database"
@@ -48,7 +47,9 @@ func TestBlockExplorer(t *testing.T) {
 		rr := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodGet, "/block/"+tc.arg, nil)
 
-		blockExplorerHandler(rr, req, n)
+		func(w http.ResponseWriter, r *http.Request, node *Node) {
+			blockByNumberOrHash(w, r, node)
+		}(rr, req, n)
 
 		if rr.Code != http.StatusOK {
 			if tc.want == 99 { // this is an error case, so continue
@@ -66,15 +67,7 @@ func TestBlockExplorer(t *testing.T) {
 
 		got := resp.Value.Header.Number
 		if got != tc.want {
-			t.Errorf("block explorer(%q)  = %q; want %q", tc.arg, got, tc.want)
+			t.Errorf("block explorer(%q)  = %v; want %v", tc.arg, got, tc.want)
 		}
 	}
-}
-
-func blockExplorerHandler(w http.ResponseWriter, r *http.Request, node *Node) {
-	p := strings.Split(r.URL.Path, "/")[1:]
-	if len(p) < 2 {
-		return
-	}
-	blockByNumberOrHash(w, r, node, p[1])
 }

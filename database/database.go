@@ -63,10 +63,9 @@ func GetBlocksAfter(blockHash Hash, dataDir string) ([]Block, error) {
 
 // GetBlockByHeightOrHash returns the requested block by hash or height.
 // It uses cached data in the State struct (HashCache / HeightCache)
-func GetBlockByHeightOrHash(state *State, height uint64, hash, dataDir string) (Block, Hash, error) {
+func GetBlockByHeightOrHash(state *State, height uint64, hash, dataDir string) (BlockFS, error) {
 
-	blk := Block{}
-	hsh := Hash{}
+	var block BlockFS
 
 	key, ok := state.HeightCache[height]
 	if hash != "" {
@@ -75,31 +74,31 @@ func GetBlockByHeightOrHash(state *State, height uint64, hash, dataDir string) (
 
 	if !ok {
 		if hash != "" {
-			return blk, hsh, fmt.Errorf("invalid hash: '%v'", hash)
+			return block, fmt.Errorf("invalid hash: '%v'", hash)
 		}
-		return blk, hsh, fmt.Errorf("invalid height: '%v'", height)
+		return block, fmt.Errorf("invalid height: '%v'", height)
 	}
 
 	f, err := os.OpenFile(getBlocksDbFilePath(dataDir), os.O_RDONLY, 0600)
 	if err != nil {
-		return blk, hsh, err
+		return block, err
 	}
 	defer f.Close()
 
-	f.Seek(key, 0)
+	_, err = f.Seek(key, 0)
+	if err != nil {
+		return block, err
+	}
 	scanner := bufio.NewScanner(f)
 	if scanner.Scan() {
 		if err := scanner.Err(); err != nil {
-			return blk, hsh, err
+			return block, err
 		}
-		var blockFs BlockFS
-		err = json.Unmarshal(scanner.Bytes(), &blockFs)
+		err = json.Unmarshal(scanner.Bytes(), &block)
 		if err != nil {
-			return blk, hsh, err
+			return block, err
 		}
-		blk = blockFs.Value
-		hsh = blockFs.Key
 	}
 
-	return blk, hsh, nil
+	return block, nil
 }

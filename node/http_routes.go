@@ -16,6 +16,7 @@
 package node
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -166,20 +167,33 @@ func addPeerHandler(w http.ResponseWriter, r *http.Request, node *Node) {
 	writeRes(w, AddPeerRes{true, ""})
 }
 
-func blockByNumberOrHash(w http.ResponseWriter, r *http.Request, node *Node, param string) {
+func blockByNumberOrHash(w http.ResponseWriter, r *http.Request, node *Node) {
 	enableCors(&w)
 
-	hsh := ""
-	height, err := strconv.ParseUint(param, 10, 64)
-	if err != nil {
-		hsh = strings.TrimSpace(param)
+	errorParamsRequired := errors.New("height or hash param is required")
+
+	params := strings.Split(r.URL.Path, "/")[1:]
+	if len(params) < 2 {
+		writeErrRes(w, errorParamsRequired)
+		return
 	}
 
-	blk, hash, err := database.GetBlockByHeightOrHash(node.state, height, hsh, node.dataDir)
+	p := strings.TrimSpace(params[1])
+	if len(p) == 0 {
+		writeErrRes(w, errorParamsRequired)
+		return
+	}
+	hsh := ""
+	height, err := strconv.ParseUint(p, 10, 64)
+	if err != nil {
+		hsh = p
+	}
+
+	block, err := database.GetBlockByHeightOrHash(node.state, height, hsh, node.dataDir)
 	if err != nil {
 		writeErrRes(w, err)
 		return
 	}
 
-	writeRes(w, database.BlockFS{hash, blk})
+	writeRes(w, block)
 }

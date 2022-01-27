@@ -20,7 +20,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/caddyserver/certmagic"
@@ -174,11 +173,7 @@ func (n *Node) serveHttp(ctx context.Context, isSSLDisabled bool, sslEmail strin
 	})
 
 	handler.HandleFunc(endpointBlockByNumber, func(w http.ResponseWriter, r *http.Request) {
-		p := strings.Split(r.URL.Path, "/")[1:]
-		if len(p) < 2 {
-			return
-		}
-		blockByNumberOrHash(w, r, n, p[1])
+		blockByNumberOrHash(w, r, n)
 	})
 
 	if isSSLDisabled {
