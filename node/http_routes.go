@@ -66,6 +66,10 @@ type AddPeerRes struct {
 	Error   string `json:"error"`
 }
 
+type BlockRes struct {
+	Block database.Block `json:"block"`
+}
+
 func listBalancesHandler(w http.ResponseWriter, r *http.Request, state *database.State) {
 	enableCors(&w)
 
@@ -135,7 +139,7 @@ func syncHandler(w http.ResponseWriter, r *http.Request, node *Node) {
 		return
 	}
 
-	blocks, err := database.GetBlocksAfter(hash, node.dataDir)
+	blocks, err := database.GetBlocksAfterHash(hash, node.dataDir)
 	if err != nil {
 		writeErrRes(w, err)
 		return
@@ -163,4 +167,41 @@ func addPeerHandler(w http.ResponseWriter, r *http.Request, node *Node) {
 	fmt.Printf("Peer '%s' was added into KnownPeers\n", peer.TcpAddress())
 
 	writeRes(w, AddPeerRes{true, ""})
+}
+
+func addBlockHandler(w http.ResponseWriter, r *http.Request, node *Node) {
+	params := r.URL.Query()
+	reqHash := params.Get(endpointBlockQueryKeyHash)
+	reqHeightRaw := params.Get(endpointBlockQueryKeyHeight)
+
+	if reqHash != "" {
+		hash := database.Hash{}
+		err := hash.UnmarshalText([]byte(reqHash))
+		if err != nil {
+			writeErrRes(w, err)
+			return
+		}
+
+		block, err := database.GetBlockByHash(hash, node.dataDir)
+		if err != nil {
+			writeErrRes(w, err)
+			return
+		}
+		writeRes(w, BlockRes{*block})
+	} else if reqHeightRaw != "" {
+		height, err := strconv.ParseUint(reqHeightRaw, 10, 64)
+		if err != nil {
+			writeErrRes(w, err)
+			return
+		}
+
+		block, err := database.GetBlockByHeight(height, node.dataDir)
+		if err != nil {
+			writeErrRes(w, err)
+			return
+		}
+		writeRes(w, BlockRes{*block})
+	} else {
+		fmt.Sprintf("missing ?hash= or ?height= paramter")
+	}
 }

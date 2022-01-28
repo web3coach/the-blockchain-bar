@@ -35,6 +35,7 @@ const DefaultBootstrapAcc = "0x09ee50f2f37fcba1845de6fe5c762e83e65e755c"
 const DefaultMiner = "0x0000000000000000000000000000000000000000"
 const DefaultIP = "127.0.0.1"
 const HttpSSLPort = 443
+
 const endpointStatus = "/node/status"
 
 const endpointSync = "/node/sync"
@@ -45,6 +46,10 @@ const endpointAddPeerQueryKeyIP = "ip"
 const endpointAddPeerQueryKeyPort = "port"
 const endpointAddPeerQueryKeyMiner = "miner"
 const endpointAddPeerQueryKeyVersion = "version"
+
+const endpointBlock = "/block"
+const endpointBlockQueryKeyHeight = "height"
+const endpointBlockQueryKeyHash = "hash"
 
 const miningIntervalSeconds = 10
 const DefaultMiningDifficulty = 3
@@ -168,6 +173,10 @@ func (n *Node) serveHttp(ctx context.Context, isSSLDisabled bool, sslEmail strin
 
 	handler.HandleFunc(endpointAddPeer, func(w http.ResponseWriter, r *http.Request) {
 		addPeerHandler(w, r, n)
+	})
+
+	handler.HandleFunc(endpointBlock, func(w http.ResponseWriter, r *http.Request) {
+		addBlockHandler(w, r, n)
 	})
 
 	if isSSLDisabled {
