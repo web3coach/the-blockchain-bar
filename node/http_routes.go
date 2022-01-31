@@ -16,9 +16,11 @@
 package node
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/web3coach/the-blockchain-bar/database"
@@ -163,4 +165,35 @@ func addPeerHandler(w http.ResponseWriter, r *http.Request, node *Node) {
 	fmt.Printf("Peer '%s' was added into KnownPeers\n", peer.TcpAddress())
 
 	writeRes(w, AddPeerRes{true, ""})
+}
+
+func blockByNumberOrHash(w http.ResponseWriter, r *http.Request, node *Node) {
+	enableCors(&w)
+
+	errorParamsRequired := errors.New("height or hash param is required")
+
+	params := strings.Split(r.URL.Path, "/")[1:]
+	if len(params) < 2 {
+		writeErrRes(w, errorParamsRequired)
+		return
+	}
+
+	p := strings.TrimSpace(params[1])
+	if len(p) == 0 {
+		writeErrRes(w, errorParamsRequired)
+		return
+	}
+	hsh := ""
+	height, err := strconv.ParseUint(p, 10, 64)
+	if err != nil {
+		hsh = p
+	}
+
+	block, err := database.GetBlockByHeightOrHash(node.state, height, hsh, node.dataDir)
+	if err != nil {
+		writeErrRes(w, err)
+		return
+	}
+
+	writeRes(w, block)
 }
