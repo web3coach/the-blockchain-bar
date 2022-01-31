@@ -21,7 +21,7 @@ To help developers learn what's happening behind the scenes in the blockchain ne
 As a User I want to traverse database blocks,
 so I can see all The Blockchain Bar's users activity and what happened when.
 
-#### Backend Proposal
+#### Backend Proposal [DONE ✓]
 Add a new API endpoint `/block/$height` to `./node/http_routes.go` to retrieve block by number.
 
 Add a new API endpoint `/block/$hash` to `./node/http_routes.go`  to retrieve block by hash.
@@ -49,7 +49,7 @@ type BlockFS struct {
 
 The easiest way to achieve this ATM will be by modifying the `func GetBlocksAfter(blockHash Hash, dataDir string) ([]Block, error) {` and adding a new argument `limit uint` to the function. As well as creating another getter to the `database` package like `func GetBlocksByNumberAfter(blockHash Hash, limit uint, dataDir string) ([]Block, error) {` and abstracting the common code shared between these two functions (the already implement blocks retrieval from disk) to a third function.
 
-#### Frontend Proposal
+#### Frontend Proposal [PENDING]
 // TODO: Add here some UI ideas how this could be displayed in the UI.
 
 ---
