@@ -1,15 +1,15 @@
 package node
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"sort"
+	"reflect"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/web3coach/the-blockchain-bar/database"
-	"github.com/web3coach/the-blockchain-bar/dto"
 	"github.com/web3coach/the-blockchain-bar/fs"
 	"github.com/web3coach/the-blockchain-bar/wallet"
 )
@@ -20,9 +20,8 @@ func TestNode_MempoolViewer(t *testing.T) {
 	andrej := database.NewAccount(testKsAndrejAccount)
 
 	// test cases
-	poolLen := 2
-	wantNonce := uint(2)
-	wantAccount := andrej
+	poolLen := 3
+	txn3From := babaYaga
 
 	dataDir, err := getTestDataDirPath()
 	if err != nil {
@@ -31,6 +30,7 @@ func TestNode_MempoolViewer(t *testing.T) {
 
 	genesisBalances := make(map[common.Address]uint)
 	genesisBalances[andrej] = 1000000
+	genesisBalances[babaYaga] = 1000000
 	genesis := database.Genesis{Balances: genesisBalances, ForkTIP1: 0}
 	genesisJson, err := json.Marshal(genesis)
 	if err != nil {
@@ -72,6 +72,7 @@ func TestNode_MempoolViewer(t *testing.T) {
 
 	tx1 := database.NewBaseTx(andrej, babaYaga, 1, 1, "")
 	tx2 := database.NewBaseTx(andrej, babaYaga, 2, 2, "")
+	tx3 := database.NewBaseTx(babaYaga, andrej, 1, 1, "")
 
 	signedTx1, err := wallet.SignTxWithKeystoreAccount(tx1, andrej, testKsAccountsPwd, wallet.GetKeystoreDirPath(dataDir))
 	if err != nil {
@@ -85,13 +86,22 @@ func TestNode_MempoolViewer(t *testing.T) {
 		return
 	}
 
-	// Add 2 new TXs into the BabaYaga's node, triggers mining
+	signedTx3, err := wallet.SignTxWithKeystoreAccount(tx3, babaYaga, testKsAccountsPwd, wallet.GetKeystoreDirPath(dataDir))
+	if err != nil {
+		t.Error(err)
+		return
+	}
 
+	// Add 3 new TXs
 	err = n.AddPendingTX(signedTx1, nInfo)
 	if err != nil {
 		t.Fatal(err)
 	}
 	err = n.AddPendingTX(signedTx2, nInfo)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = n.AddPendingTX(signedTx3, nInfo)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -104,35 +114,27 @@ func TestNode_MempoolViewer(t *testing.T) {
 	}(rr, req, n)
 
 	if rr.Code != http.StatusOK {
-		t.Error("unexpected status code: ", rr.Code, rr.Body.String())
+		t.Fatal("unexpected status code: ", rr.Code, rr.Body.String())
 	}
 
-	resp := []dto.PendingTx{}
+	var resp map[string]database.SignedTx
 	dec := json.NewDecoder(rr.Body)
 	err = dec.Decode(&resp)
 	if err != nil {
-		t.Error("error decoding", err)
+		t.Fatal("error decoding", err)
 	}
-
-	// sort by timestamp before test
-	sort.SliceStable(resp, func(i, j int) bool {
-		return resp[i].Nonce < resp[j].Nonce
-	})
 
 	// check pool length
 	if len(resp) != poolLen {
-		t.Errorf("mempool viewer reponse len wrong, got %v; want %v", len(resp), poolLen)
+		t.Fatalf("mempool viewer reponse len wrong, got %v; want %v", len(resp), poolLen)
 	}
 
-	// first txn is from andrej
-	gotAccount := resp[0].From
-	if gotAccount != wantAccount {
-		t.Errorf("txn from invalid, got %q, want %q", gotAccount, wantAccount)
-	}
-
-	// second nonce
-	gotNonce := resp[1].Nonce
-	if gotNonce != wantNonce {
-		t.Errorf("mempool viewer unexpected nonce, got %v; want %v", gotNonce, wantNonce)
+	for _, v := range resp {
+		// check for third case
+		if v.From.Hex() == txn3From.Hex() {
+			if !reflect.DeepEqual(signedTx3.Sig, v.Sig) {
+				t.Errorf("invalid signature for txn, got %q, want %q", base64.StdEncoding.EncodeToString(v.Sig), base64.StdEncoding.EncodeToString(signedTx3.Sig))
+			}
+		}
 	}
 }

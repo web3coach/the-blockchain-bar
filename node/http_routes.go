@@ -24,7 +24,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/web3coach/the-blockchain-bar/database"
-	"github.com/web3coach/the-blockchain-bar/dto"
 	"github.com/web3coach/the-blockchain-bar/wallet"
 )
 
@@ -202,9 +201,5 @@ func blockByNumberOrHash(w http.ResponseWriter, r *http.Request, node *Node) {
 func mempoolViewer(w http.ResponseWriter, r *http.Request, txs map[string]database.SignedTx) {
 	enableCors(&w)
 
-	o := make([]dto.PendingTx, 0, len(txs))
-	for k, v := range txs {
-		o = append(o, dto.PendingTx{SignedTx: v, Hash: k})
-	}
-	writeRes(w, o)
+	writeRes(w, txs)
 }
