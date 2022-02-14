@@ -47,6 +47,7 @@ const endpointAddPeerQueryKeyMiner = "miner"
 const endpointAddPeerQueryKeyVersion = "version"
 
 const endpointBlockByNumberOrHash = "/block/"
+const endpointMempoolViewer = "/mempool/"
 
 const miningIntervalSeconds = 10
 const DefaultMiningDifficulty = 3
@@ -174,6 +175,10 @@ func (n *Node) serveHttp(ctx context.Context, isSSLDisabled bool, sslEmail strin
 
 	handler.HandleFunc(endpointBlockByNumberOrHash, func(w http.ResponseWriter, r *http.Request) {
 		blockByNumberOrHash(w, r, n)
+	})
+
+	handler.HandleFunc(endpointMempoolViewer, func(w http.ResponseWriter, r *http.Request) {
+		mempoolViewer(w, r, n.pendingTXs)
 	})
 
 	if isSSLDisabled {

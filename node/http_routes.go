@@ -197,3 +197,9 @@ func blockByNumberOrHash(w http.ResponseWriter, r *http.Request, node *Node) {
 
 	writeRes(w, block)
 }
+
+func mempoolViewer(w http.ResponseWriter, r *http.Request, txs map[string]database.SignedTx) {
+	enableCors(&w)
+
+	writeRes(w, txs)
+}
