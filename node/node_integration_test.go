@@ -2,12 +2,13 @@ package node
 
 import (
 	"context"
-	"github.com/web3coach/the-blockchain-bar/database"
-	"github.com/web3coach/the-blockchain-bar/fs"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/web3coach/the-blockchain-bar/database"
+	"github.com/web3coach/the-blockchain-bar/fs"
 )
 
 func TestNode_Run(t *testing.T) {
@@ -21,8 +22,8 @@ func TestNode_Run(t *testing.T) {
 
 	ctx, _ := context.WithTimeout(context.Background(), time.Second*5)
 	err = n.Run(ctx)
-	if err.Error() != "http: Server closed" {
-		t.Fatal("node server was suppose to close after 5s")
+	if err != nil {
+		t.Fatal(err)
 	}
 }
 
