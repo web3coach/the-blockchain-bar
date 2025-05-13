@@ -6,6 +6,12 @@
 
 [![book cover](public/img/book_cover2.png)](https://web3.coach#book)
 
+> [!TIP]
+> Now, in May 2025, I am writing an in-depth "second edition" for developers looking to master blockchain technology.
+> 
+> Open: https://github.com/web3coach/go-blockchain-internals
+
+
 Table of Contents
 =================
 
