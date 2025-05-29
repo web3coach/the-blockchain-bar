@@ -7,9 +7,9 @@
 [![book cover](public/img/book_cover2.png)](https://web3.coach#book)
 
 > [!TIP]
-> Now, in May 2025, I am writing an in-depth "second edition" for developers looking to master blockchain technology.
+> Now, in May 2025, I am writing an in-depth "second edition" where we will together reverse-engineer the Ethereum internals written in GoLang.
 > 
-> Open: https://github.com/web3coach/go-blockchain-internals
+> Open: [https://web3coach.gumroad.com/l/go-ethereum-internals](https://web3coach.gumroad.com/l/go-ethereum-internals)
 
 
 Table of Contents
